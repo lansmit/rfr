@@ -7,7 +7,7 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import io.qameta.allure.Allure;
 import io.qameta.allure.AttachmentOptions;
-import io.student.rangiffler.config.Config;
+import io.student.rangiffler.config.TestConfig;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -25,8 +25,9 @@ public class BrowserExtension implements BeforeEachCallback, AfterEachCallback, 
   @Override
   public void beforeEach(ExtensionContext context) {
     Playwright playwright = Playwright.create();
-    Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(Config.headless()));
-    BrowserContext browserContext = browser.newContext();
+    Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(TestConfig.headless()));
+    // rfr-auth localizes error messages by Accept-Language, which otherwise follows the OS locale
+    BrowserContext browserContext = browser.newContext(new Browser.NewContextOptions().setLocale("en-US"));
     ExtensionContext.Store store = context.getStore(NAMESPACE);
     store.put(Playwright.class, playwright);
     store.put(Page.class, browserContext.newPage());

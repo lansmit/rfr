@@ -8,29 +8,29 @@ import io.student.rangiffler.page.ProfilePage;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-public class Header {
+public final class Header {
 
   private final Page page;
-  private final Locator profileButton;
+  private final Locator profileLink;
   private final Locator logoutButton;
 
   public Header(Page page) {
     this.page = page;
     Locator self = page.getByRole(AriaRole.BANNER);
-    this.profileButton = self.getByLabel("Profile");
-    this.logoutButton = self.getByLabel("Logout");
-  }
-
-  @Step("Check that header of an authenticated user is shown")
-  public Header checkUserIsLoggedIn() {
-    assertThat(profileButton).isVisible();
-    assertThat(logoutButton).isVisible();
-    return this;
+    this.profileLink = self.getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("Profile").setExact(true));
+    this.logoutButton = self.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Logout").setExact(true));
   }
 
   @Step("Open profile from header")
   public ProfilePage openProfile() {
-    profileButton.click();
-    return new ProfilePage(page).checkThatPageLoaded();
+    profileLink.click();
+    return new ProfilePage(page);
+  }
+
+  @Step("Check that header of an authenticated user is shown")
+  public Header checkUserIsLoggedIn() {
+    assertThat(profileLink).isVisible();
+    assertThat(logoutButton).isVisible();
+    return this;
   }
 }

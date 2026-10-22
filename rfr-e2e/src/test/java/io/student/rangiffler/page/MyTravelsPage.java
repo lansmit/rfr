@@ -1,34 +1,29 @@
 package io.student.rangiffler.page;
 
-import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
-import io.student.rangiffler.config.Config;
+import io.student.rangiffler.config.TestConfig;
 import io.student.rangiffler.page.component.Header;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+public final class MyTravelsPage {
 
-public class MyTravelsPage extends BasePage<MyTravelsPage> {
+  public static final String URL = TestConfig.frontUrl() + "/my-travels";
 
+  private final Page page;
   private final Header header;
-  private final Locator travelsMapTitle;
 
   public MyTravelsPage(Page page) {
-    super(page);
+    this.page = page;
     this.header = new Header(page);
-    this.travelsMapTitle = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Travels map"));
   }
 
   public Header header() {
     return header;
   }
 
-  @Override
-  @Step("Check that 'My travels' page is loaded")
-  public MyTravelsPage checkThatPageLoaded() {
-    assertThat(page).hasURL(Config.frontUrl() + "/my-travels");
-    assertThat(travelsMapTitle).isVisible();
-    return this;
+  @Step("Open 'My travels' page")
+  public static MyTravelsPage open(Page page) {
+    page.navigate(URL);
+    return new MyTravelsPage(page);
   }
 }

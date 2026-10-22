@@ -21,7 +21,8 @@ class RegistrationTest {
 
     LandingPage.open(page)
         .clickRegister()
-        .registerUser(username, password)
+        .fillRegistrationForm(username, password, password)
+        .submitRegistrationForm()
         .checkRegistrationSuccess()
         .clickSignIn()
         .clickLogin()

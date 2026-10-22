@@ -2,15 +2,17 @@ package io.student.rangiffler.page;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
-import io.student.rangiffler.config.Config;
-
-import java.util.regex.Pattern;
+import io.student.rangiffler.config.TestConfig;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-public class RegisterPage extends BasePage<RegisterPage> {
+public final class RegisterPage {
 
+  public static final String URL = TestConfig.authUrl() + "/register";
+
+  private final Page page;
   private final Locator usernameInput;
   private final Locator passwordInput;
   private final Locator passwordSubmitInput;
@@ -19,61 +21,26 @@ public class RegisterPage extends BasePage<RegisterPage> {
   private final Locator signInLink;
 
   public RegisterPage(Page page) {
-    super(page);
-    this.usernameInput = page.locator("#username");
-    this.passwordInput = page.locator("#password");
-    this.passwordSubmitInput = page.locator("#passwordSubmit");
-    this.submitButton = page.locator("#register-form .form__submit");
+    this.page = page;
+    this.usernameInput = page.getByLabel("Username", new Page.GetByLabelOptions().setExact(true));
+    this.passwordInput = page.getByLabel("Password", new Page.GetByLabelOptions().setExact(true));
+    this.passwordSubmitInput = page.getByLabel("Confirm password", new Page.GetByLabelOptions().setExact(true));
+    this.submitButton = page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Sign up").setExact(true));
     this.successMessage = page.locator(".form__paragraph_success");
-    this.signInLink = page.locator("a.form_sign-in");
+    this.signInLink = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("Sign in").setExact(true));
   }
 
-  @Override
-  @Step("Check that registration page is loaded")
-  public RegisterPage checkThatPageLoaded() {
-    assertThat(page).hasURL(Pattern.compile("^" + Config.authUrl() + "/register"));
-    assertThat(usernameInput).isVisible();
-    assertThat(passwordInput).isVisible();
-    assertThat(passwordSubmitInput).isVisible();
-    return this;
-  }
-
-  @Step("Fill username: {username}")
-  public RegisterPage fillUsername(String username) {
+  @Step("Fill registration form: username={username}, password={password}, passwordSubmit={passwordSubmit}")
+  public RegisterPage fillRegistrationForm(String username, String password, String passwordSubmit) {
     usernameInput.fill(username);
-    return this;
-  }
-
-  @Step("Fill password")
-  public RegisterPage fillPassword(String password) {
     passwordInput.fill(password);
-    return this;
-  }
-
-  @Step("Fill password confirmation")
-  public RegisterPage fillPasswordSubmit(String password) {
-    passwordSubmitInput.fill(password);
+    passwordSubmitInput.fill(passwordSubmit);
     return this;
   }
 
   @Step("Submit registration form")
-  public RegisterPage submit() {
+  public RegisterPage submitRegistrationForm() {
     submitButton.click();
-    return this;
-  }
-
-  @Step("Register user {username}")
-  public RegisterPage registerUser(String username, String password) {
-    return fillUsername(username)
-        .fillPassword(password)
-        .fillPasswordSubmit(password)
-        .submit();
-  }
-
-  @Step("Check that registration is successful")
-  public RegisterPage checkRegistrationSuccess() {
-    assertThat(successMessage).hasText("Congratulations! You've registered!");
-    assertThat(signInLink).isVisible();
     return this;
   }
 
@@ -81,6 +48,13 @@ public class RegisterPage extends BasePage<RegisterPage> {
   @Step("Click 'Sign in' after registration")
   public LandingPage clickSignIn() {
     signInLink.click();
-    return new LandingPage(page).checkThatPageLoaded();
+    return new LandingPage(page);
+  }
+
+  @Step("Check that registration is successful")
+  public RegisterPage checkRegistrationSuccess() {
+    assertThat(successMessage).hasText("Congratulations! You've registered!");
+    assertThat(signInLink).isVisible();
+    return this;
   }
 }

@@ -3,29 +3,37 @@ package io.student.rangiffler.page;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import io.qameta.allure.Step;
-import io.student.rangiffler.config.Config;
+import io.student.rangiffler.config.TestConfig;
+import io.student.rangiffler.page.component.Header;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-public class ProfilePage extends BasePage<ProfilePage> {
+public final class ProfilePage {
 
+  public static final String URL = TestConfig.frontUrl() + "/profile";
+
+  private final Page page;
+  private final Header header;
   private final Locator usernameInput;
 
   public ProfilePage(Page page) {
-    super(page);
-    this.usernameInput = page.locator("#username");
+    this.page = page;
+    this.header = new Header(page);
+    this.usernameInput = page.getByLabel("Username", new Page.GetByLabelOptions().setExact(true));
   }
 
-  @Override
-  @Step("Check that profile page is loaded")
-  public ProfilePage checkThatPageLoaded() {
-    assertThat(page).hasURL(Config.frontUrl() + "/profile");
-    assertThat(usernameInput).isVisible();
-    return this;
+  public Header header() {
+    return header;
+  }
+
+  @Step("Open profile page")
+  public static ProfilePage open(Page page) {
+    page.navigate(URL);
+    return new ProfilePage(page);
   }
 
   // username is resolved by the API from the JWT, so a match proves the session belongs to this user
-  @Step("Check that profile belongs to {username}")
+  @Step("Check that profile username is {username}")
   public ProfilePage checkUsername(String username) {
     assertThat(usernameInput).hasValue(username);
     return this;
