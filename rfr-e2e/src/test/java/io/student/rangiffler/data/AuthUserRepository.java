@@ -36,6 +36,17 @@ public final class AuthUserRepository {
     return new TestUser(id, username, password);
   }
 
+  public void delete(UUID id) {
+    inTransaction(AUTH, () -> {
+      client(AUTH).sql(sql("sql/auth/delete_authorities.sql"))
+          .param("userId", toBytes(id))
+          .update();
+      client(AUTH).sql(sql("sql/auth/delete_user.sql"))
+          .param("id", toBytes(id))
+          .update();
+    });
+  }
+
   // rfr-auth uses DelegatingPasswordEncoder, which picks the algorithm by the {id} prefix of the stored hash
   private static String encode(String password) {
     return "{bcrypt}" + BCRYPT.encode(password);
