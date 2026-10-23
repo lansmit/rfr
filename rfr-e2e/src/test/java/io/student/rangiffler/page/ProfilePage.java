@@ -60,6 +60,12 @@ public final class ProfilePage {
     return new ProfilePage(page);
   }
 
+  @Step("Reload profile page")
+  public ProfilePage reload() {
+    page.reload();
+    return this;
+  }
+
   @Step("Fill profile form: firstname={firstname}, surname={surname}")
   public ProfilePage fillProfileForm(String firstname, String surname) {
     firstnameInput.fill(firstname);
