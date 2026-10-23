@@ -1,4 +1,4 @@
-package io.student.rangiffler.test.web;
+package io.student.rangiffler.test.auth;
 
 import com.microsoft.playwright.Page;
 import io.student.rangiffler.jupiter.annotation.User;
