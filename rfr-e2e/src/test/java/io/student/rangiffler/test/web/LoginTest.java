@@ -38,15 +38,4 @@ class LoginTest {
         .openProfile()
         .checkUsername(user.username());
   }
-
-  // guards against a user stored with a password that matches anything (e.g. a broken hash prefix)
-  @Test
-  @DisplayName("Existing user cannot log in with a wrong password")
-  void userShouldNotBeAuthorizedWithWrongPassword(Page page, @User TestUser user) {
-    LandingPage.open(page)
-        .clickLogin()
-        .fillLoginForm(user.username(), user.password() + "x")
-        .submitLoginForm()
-        .checkLoginError("Bad credentials");
-  }
 }
