@@ -64,7 +64,8 @@ Put schema changes into a new Flyway migration under `src/main/resources/db/migr
 ## Working with the agent
 
 The IntelliJ IDEA MCP (`mcp__idea__*`) is optional: it comes from the user's IDE, not from `.mcp.json`. Use it when connected, otherwise fall back to the commands below. Read-only IDEA tools are allowed without prompts in `.claude/settings.json`.
-- After editing Java files, check them with `get_file_problems` instead of a full build (fallback: `./gradlew :<module>:compileJava` / `compileTestJava`). Neither catches HQL/JPQL errors — those surface only when rfr-api starts.
+- A PostToolUse hook (`.claude/hooks/check-changed-file.sh`) compiles the module after every Java edit and runs `tsc` + eslint after every frontend edit. Fix its errors before finishing; errors mid-way through a multi-file change are expected. It doesn't catch HQL/JPQL errors — those surface only when rfr-api starts.
+- Before finishing a Java change, optionally run `get_file_problems` on the changed files for IDEA warnings the compiler doesn't report.
 - Look up classes and usages with `search_symbol` / `get_symbol_info` / `analyze_calls` rather than grepping and reading whole files; they also resolve the generated DGS types.
 - For DB state (test data, what a fixture left behind) use the IDEA data source `rfr-mysql` (`localhost:3306`, both schemas) via `preview_table_data` / `execute_sql_query`; fallback: `docker exec rfr-mysql mysql -uroot -psecret <schema> -e "..."`.
 - Inspect live pages with Playwright MCP (`.mcp.json`) when writing Page Objects; see the `rfr-page-objects` skill.

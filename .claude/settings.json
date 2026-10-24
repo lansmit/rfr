@@ -46,5 +46,19 @@
   },
   "enabledMcpjsonServers": [
     "playwright"
-  ]
+  ],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-changed-file.sh",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
 }

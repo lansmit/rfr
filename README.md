@@ -38,7 +38,8 @@ rfr/
 ├── rfr-gql-client/        # React + TypeScript Frontend (готов)
 ├── rfr-e2e/               # E2E тесты: JUnit 6 + Playwright + Allure 3, см. rfr-e2e/README.md
 ├── .claude/
-│   ├── settings.json      # разрешения агента (read-only инструменты IDEA MCP) — занятие 2
+│   ├── settings.json      # разрешения и хуки агента — занятие 2
+│   ├── hooks/             # проверка кода после каждой правки агента — занятие 2
 │   └── skills/            # skill rfr-page-objects: правила Page Object для AI-агента
 ├── CLAUDE.md              # инструкции для AI-агента (+ CLAUDE.md в каждом модуле) — занятие 2
 ├── .mcp.json              # Playwright MCP
@@ -161,7 +162,8 @@ Mock контроллеры в rfr-api будут возвращать стат�
 | Skill | [`rfr-page-objects`](.claude/skills/rfr-page-objects/SKILL.md) | Правила Page Object для UI-тестов |
 | Playwright MCP | [`.mcp.json`](.mcp.json) | Агент смотрит живые страницы стенда, чтобы подобрать локаторы |
 | IntelliJ IDEA MCP *(занятие 2)* | подключается из IDE, в репозитории не хранится | Проверка правок инспекциями IDEA вместо полной сборки, поиск символов и вызовов, запросы к БД через data source `rfr-mysql` (`localhost:3306`). Без IDE агент использует Gradle и `docker exec` |
-| Разрешения *(занятие 2)* | [`.claude/settings.json`](.claude/settings.json) | Read-only инструменты IDEA MCP работают без подтверждения |
+| Разрешения *(занятие 2)* | [`.claude/settings.json`](.claude/settings.json) | Без подтверждения: read-only инструменты IDEA MCP, запуск и остановка стенда и тестов. Запрещены `git push` и `rm` — вместо удаления агент переименовывает файл в `*.bak` |
+| Хук *(занятие 2)* | [`.claude/hooks/check-changed-file.sh`](.claude/hooks/check-changed-file.sh) | После каждой правки агента компилирует изменённый Java-модуль или проверяет фронт `tsc` + eslint; ошибки сразу возвращаются агенту, и он чинит их в том же ходе |
 
 `CLAUDE.md` написаны по трём правилам *(занятие 2)*:
 - **инструкции, а не описания**: «после правки `@Query` запусти rfr-api — сборка запросы не проверяет», а не «HQL валидируется при старте». Агенту не нужно выводить действие из факта, и правило срабатывает в нужный момент;
