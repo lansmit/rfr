@@ -43,6 +43,7 @@ rfr/
 ├── CLAUDE.md              # инструкции для AI-агента (+ CLAUDE.md в каждом модуле) — занятие 2
 ├── .mcp.json              # Playwright MCP
 ├── docker-compose.yml     # MySQL для локального стенда — занятие 2
+├── .github/workflows/     # CI на каждый PR: сборка бэкендов, компиляция e2e, lint и сборка фронта — занятие 2
 └── Settings check/        # отчёт о проверке настройки агента (skill + Playwright MCP)
 ```
 

@@ -28,7 +28,7 @@ bash ports.sh                    # kill whatever listens on 9001/8081/3001
 
 ./gradlew :rfr-auth:bootRun      # start auth first — rfr-api fetches JWKS from it
 ./gradlew :rfr-api:bootRun
-./gradlew build
+./gradlew build                  # also runs :rfr-e2e:test, so it needs the stand; to only compile: :rfr-auth:build :rfr-api:build :rfr-e2e:testClasses
 
 ./gradlew e2e                    # all rfr-e2e tests; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
 
