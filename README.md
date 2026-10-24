@@ -37,7 +37,11 @@ rfr/
 │   └── Flyway миграции БД
 ├── rfr-gql-client/        # React + TypeScript Frontend (готов)
 ├── rfr-e2e/               # E2E тесты: JUnit 6 + Playwright + Allure 3, см. rfr-e2e/README.md
-├── .claude/skills/        # skill rfr-page-objects: правила Page Object для AI-агента
+├── .claude/
+│   ├── settings.json      # разрешения агента (read-only инструменты IDEA MCP) — занятие 2
+│   └── skills/            # skill rfr-page-objects: правила Page Object для AI-агента
+├── CLAUDE.md              # инструкции для AI-агента (+ CLAUDE.md в каждом модуле) — занятие 2
+├── .mcp.json              # Playwright MCP
 └── Settings check/        # отчёт о проверке настройки агента (skill + Playwright MCP)
 ```
 
@@ -136,7 +140,22 @@ Mock контроллеры в rfr-api будут возвращать стат�
 
 #### 7. AI-агент
 
-Для написания UI-тестов настроен Claude Code: skill [`rfr-page-objects`](.claude/skills/rfr-page-objects/SKILL.md) с правилами Page Object и Playwright MCP (`.mcp.json`). Проверка настройки и ответы агента — в [Settings check](Settings%20check/README.md).
+Для работы с проектом настроен Claude Code. Пометка *(занятие 2)* — добавлено на втором занятии.
+
+| Что | Где | Зачем |
+|---|---|---|
+| Инструкции *(занятие 2)* | [`CLAUDE.md`](CLAUDE.md) в корне + `CLAUDE.md` в каждом модуле | Корневой загружается всегда (обзор, команды, общие для модулей правила), модульный — только когда агент работает с файлами модуля, чтобы не тратить контекст на чужие детали |
+| Skill | [`rfr-page-objects`](.claude/skills/rfr-page-objects/SKILL.md) | Правила Page Object для UI-тестов |
+| Playwright MCP | [`.mcp.json`](.mcp.json) | Агент смотрит живые страницы стенда, чтобы подобрать локаторы |
+| IntelliJ IDEA MCP *(занятие 2)* | подключается из IDE, в репозитории не хранится | Проверка правок инспекциями IDEA вместо полной сборки, поиск символов и вызовов, запросы к БД через data source `rfr-mysql` (`localhost:3306`). Без IDE агент использует Gradle и `docker exec` |
+| Разрешения *(занятие 2)* | [`.claude/settings.json`](.claude/settings.json) | Read-only инструменты IDEA MCP работают без подтверждения |
+
+`CLAUDE.md` написаны по трём правилам *(занятие 2)*:
+- **инструкции, а не описания**: «после правки `@Query` запусти rfr-api — сборка запросы не проверяет», а не «HQL валидируется при старте». Агенту не нужно выводить действие из факта, и правило срабатывает в нужный момент;
+- **только то, что агент иначе сделает неправильно**: неочевидные запреты, ловушки, соглашения. Структуру папок и устройство классов он быстрее прочитает в коде, а описания к тому же устаревают;
+- **каждый факт в одном месте**: общие для модулей правила — в корне, остальное — в модуле.
+
+Личные настройки (одобрение MCP-серверов, свои разрешения) — в `.claude/settings.local.json`, он не коммитится *(занятие 2)*. Проверка настройки и ответы агента — в [Settings check](Settings%20check/README.md).
 
 
 # Что дальше?

@@ -4,7 +4,9 @@
 
 - Agent: Claude Code
 - Skill: `.claude/skills/rfr-page-objects/SKILL.md` (`name: rfr-page-objects`)
-- Playwright MCP: `.mcp.json` → `npx @playwright/mcp@0.0.83 --isolated`, enabled in `.claude/settings.local.json`
+- Playwright MCP: `.mcp.json` → `npx @playwright/mcp@0.0.83 --isolated`, enabled in `.claude/settings.local.json` (personal, not committed: each user approves project MCP servers themselves) *(lesson 2)*
+- Agent instructions: root `CLAUDE.md` plus a `CLAUDE.md` per module (`rfr-api`, `rfr-auth`, `rfr-gql-client`, `rfr-e2e`) *(lesson 2)*
+- IntelliJ IDEA MCP (from the IDE, not in the repo); its read-only tools are allowed in `.claude/settings.json` *(lesson 2)*
 
 ## Q1: Какие правила skill rfr-page-objects относятся к конструктору и проверкам?
 
