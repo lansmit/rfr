@@ -42,6 +42,7 @@ rfr/
 │   └── skills/            # skill rfr-page-objects: правила Page Object для AI-агента
 ├── CLAUDE.md              # инструкции для AI-агента (+ CLAUDE.md в каждом модуле) — занятие 2
 ├── .mcp.json              # Playwright MCP
+├── docker-compose.yml     # MySQL для локального стенда — занятие 2
 └── Settings check/        # отчёт о проверке настройки агента (skill + Playwright MCP)
 ```
 
@@ -88,7 +89,7 @@ bash localenv.sh
 
 Скрипт запустит MySQL в Docker контейнере.
 
-> Перед этим скрипт останавливает и удаляет **все** Docker-контейнеры на машине, а не только старый контейнер MySQL.
+MySQL описан в [`docker-compose.yml`](docker-compose.yml): скрипт возвращает управление, когда база уже принимает подключения, и не трогает другие контейнеры. Остановить — `docker compose down` (данные остаются в volume `mysql-volume`) *(занятие 2)*.
 
 #### 2. Запусти rfr-auth:
 

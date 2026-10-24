@@ -13,8 +13,6 @@ bash localenv.sh                          # MySQL в Docker, :3306 (root/secret)
 cd rfr-gql-client && npm i && npm run dev # :3001
 ```
 
-> `localenv.sh` останавливает и удаляет **все** Docker-контейнеры на машине, а не только контейнер MySQL.
-
 При первом запуске Playwright сам скачивает Chromium, поэтому первый прогон заметно дольше.
 
 ## Запуск

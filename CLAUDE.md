@@ -20,7 +20,7 @@ Stack: Java 25 (Gradle toolchain), Gradle 9.7.1 wrapper, Spring Boot 4.1.1 (BOM 
 ## Commands
 
 ```bash
-bash localenv.sh                 # MySQL in Docker (root/secret, :3306). WARNING: stops and removes ALL docker containers
+bash localenv.sh                 # MySQL via docker-compose.yml (root/secret, :3306), returns once the DB is healthy
 bash ports.sh                    # kill whatever listens on 9001/8081/3001
 
 ./gradlew :rfr-auth:bootRun      # start auth first — rfr-api fetches JWKS from it
@@ -32,7 +32,7 @@ bash ports.sh                    # kill whatever listens on 9001/8081/3001
 cd rfr-gql-client && npm i && npm run dev
 ```
 
-Warn the user before running `localenv.sh`: it removes every Docker container on the machine, not only MySQL.
+Stop MySQL with `docker compose down`; never add `-v` without asking — it deletes the volume with both databases.
 
 Put schema changes into a new Flyway migration under `src/main/resources/db/migration/<schema>/`; never edit an applied one (`ddl-auto: none`; databases are created and migrated on startup).
 
