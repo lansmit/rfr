@@ -47,7 +47,7 @@ Put schema changes into a new Flyway migration under `src/main/resources/db/migr
 - Call rfr-api only with the access token (`Authorization: Bearer`): an `id_token` gets 401. Queries need the `read` authority, mutations `write`; the username is the JWT `sub`.
 - After restarting rfr-auth, log in again before investigating any 401 from rfr-api: the signing key is regenerated on start.
 - Don't expect revocation to lock a token out of rfr-api: it validates JWTs locally and accepts a revoked token until `exp`.
-- Link users across `rangiffler-auth` and `rangiffler-api` by username only; their UUIDs differ. Expect no API profile until the user's first `Query.user` (first login).
+- Link users across `rangiffler-auth` and `rangiffler-api` by username only; their UUIDs differ. Expect no API profile until the user's first `Query.user` (first login); it is created with country `ru`.
 
 ### Errors
 - Map exceptions in every service as `GraphQlExceptionResolver` does: `ResourceNotFoundException` → `NOT_FOUND`; `FriendshipActionException` and `IllegalArgumentException` → `BAD_REQUEST`; anything else → `INTERNAL_ERROR` without details. Respond HTTP 200 with `errors[]`.
@@ -56,6 +56,11 @@ Put schema changes into a new Flyway migration under `src/main/resources/db/migr
 
 ### Mocks
 - Don't test persistence of feed, photos, likes or stats yet: they are mocks in rfr-api and save nothing. Users, countries and friendship are real.
+
+### Friendship
+- To make two users friends in a test: `ADD` as A, then `ACCEPT` as B. `ACCEPT`/`REJECT` by the sender fails with `BAD_REQUEST`.
+- Don't look for an invitation table: an invitation is a `friendship` row with `PENDING` status (`requester` → `addressee`).
+- After `REJECT` or `DELETE` assert "not friends" (`NOT_FRIEND`), not "rejected": both delete the row.
 
 ### Java
 - Import Jackson 3 (`tools.jackson.databind.*`), not `com.fasterxml.jackson.databind.*`: Spring Boot 4.

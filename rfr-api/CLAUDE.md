@@ -14,8 +14,9 @@ GraphQL API (Spring GraphQL), OAuth2 resource server, JPA + Flyway. Port 8081 (`
 - Resolve nested fields (`User.friends`, `Feed.photos`, `Photo.likes`, …) with `@SchemaMapping`; never call those resolver methods directly.
 - Throw `ResourceNotFoundException`, `IllegalArgumentException` or a domain `*ActionException` so `GraphQlExceptionResolver` maps them; add new exception types to the resolver.
 
-## Replacing the mocks
-- Replace `FeedMockQueryController`, `PhotoMockMutationController` and `FeedMockData` (`resources/mock/*.json`) with real services; tables `photo`, `like`, `photo_like`, `statistic` already exist in the migration.
+## Mocks
+- Keep the mocks until the user explicitly asks to replace them.
+- When asked: replace `FeedMockQueryController`, `PhotoMockMutationController` and `FeedMockData` (`resources/mock/*.json`) with real services; tables `photo`, `like`, `photo_like`, `statistic` already exist in the migration.
 - Split `V1__schema_init.sql` per service when extracting microservices: it is written as one monolithic DB.
 
 ## Data layer
