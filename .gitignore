@@ -28,6 +28,9 @@ dist/
 # Logs
 *.log
 
+# Backups instead of deleted files (rm is denied for the agent)
+*.bak
+
 # OS
 .DS_Store
 Thumbs.db

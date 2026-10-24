@@ -35,6 +35,8 @@ bash ports.sh                    # kill whatever listens on 9001/8081/3001
 cd rfr-gql-client && npm i && npm run dev
 ```
 
+Never delete files: `rm` is denied. To drop a file, rename it to `<name>.bak` (`mv file file.bak`) and tell the user. `git push` is denied too — the user pushes.
+
 Stop MySQL with `docker compose down`; never add `-v` without asking — it deletes the volume with both databases.
 
 Put schema changes into a new Flyway migration under `src/main/resources/db/migration/<schema>/`; never edit an applied one (`ddl-auto: none`; databases are created and migrated on startup).

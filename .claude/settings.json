@@ -15,7 +15,36 @@
       "mcp__idea__list_schema_objects",
       "mcp__idea__introspect_schema",
       "mcp__idea__get_database_object_description",
-      "mcp__idea__preview_table_data"
+      "mcp__idea__preview_table_data",
+
+      "Bash(./gradlew runAll)",
+      "Bash(./gradlew stopAll)",
+      "Bash(./gradlew :rfr-auth:bootRun)",
+      "Bash(./gradlew :rfr-api:bootRun)",
+      "Bash(bash ports.sh)",
+
+      "Bash(npm run dev)",
+
+      "Bash(bash localenv.sh)",
+      "Bash(docker compose up -d mysql --wait)",
+      "Bash(docker compose stop)",
+      "Bash(docker compose down)",
+
+      "Bash(./gradlew e2e)",
+      "Bash(./gradlew e2e *)",
+      "Bash(./gradlew :rfr-e2e:test)",
+      "Bash(./gradlew :rfr-e2e:test *)",
+
+      "Bash(mv * *.bak)",
+      "Bash(cp * *.bak)"
+    ],
+    "deny": [
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(rm *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright"
+  ]
 }
