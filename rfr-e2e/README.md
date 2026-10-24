@@ -4,7 +4,13 @@ UI-тесты Rangiffler: JUnit 6 + Playwright Java + Allure 3.
 
 ## Перед запуском
 
-Тесты ходят в настоящий стенд: логинятся через UI и создают пользователей напрямую в БД. Поэтому до запуска должны работать все сервисы (порядок важен):
+Тесты ходят в настоящий стенд: логинятся через UI и создают пользователей напрямую в БД. Поэтому до запуска должны работать все сервисы. Проще всего поднять их одной командой из корня *(занятие 2)*:
+
+```bash
+./gradlew runAll    # MySQL, rfr-auth, rfr-api, фронт — в фоне, по порядку; остановить: ./gradlew stopAll
+```
+
+Или по отдельности (порядок важен):
 
 ```bash
 bash localenv.sh                          # MySQL в Docker, :3306 (root/secret)
@@ -20,10 +26,10 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 Все команды — из корня репозитория.
 
 ```bash
-./gradlew :rfr-e2e:test                                                    # все тесты
+./gradlew e2e                                                              # все тесты
 ./gradlew :rfr-e2e:test --tests 'io.student.rangiffler.test.profile.ProfileTest'   # один класс
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'         # один тест
-./gradlew :rfr-e2e:test -Drfr.headless=false                               # с видимым браузером
+./gradlew e2e -Drfr.headless=false                                         # с видимым браузером
 ```
 
 ## Отчёт Allure

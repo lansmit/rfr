@@ -20,6 +20,9 @@ Stack: Java 25 (Gradle toolchain), Gradle 9.7.1 wrapper, Spring Boot 4.1.1 (BOM 
 ## Commands
 
 ```bash
+./gradlew runAll                 # whole stand in the background (MySQL → auth → api → frontend), returns when all are up; logs in build/logs/
+./gradlew stopAll                # stop it all (MySQL via docker compose down, data kept)
+
 bash localenv.sh                 # MySQL via docker-compose.yml (root/secret, :3306), returns once the DB is healthy
 bash ports.sh                    # kill whatever listens on 9001/8081/3001
 
@@ -27,7 +30,7 @@ bash ports.sh                    # kill whatever listens on 9001/8081/3001
 ./gradlew :rfr-api:bootRun
 ./gradlew build
 
-./gradlew :rfr-e2e:test          # single test, headed mode, Allure: rfr-e2e/CLAUDE.md
+./gradlew e2e                    # all rfr-e2e tests; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
 
 cd rfr-gql-client && npm i && npm run dev
 ```

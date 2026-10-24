@@ -3,10 +3,10 @@
 UI tests: JUnit 6 + Playwright Java + Allure 3. Design notes, structure and coverage: `README.md` (Russian).
 
 ```bash
-./gradlew :rfr-e2e:test
+./gradlew e2e                                                                     # all tests
 ./gradlew :rfr-e2e:test --tests 'io.student.rangiffler.test.profile.ProfileTest'   # one class
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'                # one test
-./gradlew :rfr-e2e:test -Drfr.headless=false                                      # visible browser
+./gradlew e2e -Drfr.headless=false                                                # visible browser
 ./gradlew :rfr-e2e:allureServe   # Allure report (allureReport to just generate)
 ```
 

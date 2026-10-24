@@ -42,3 +42,101 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.compilerArgs.add('-parameters')
 }
+
+tasks.register('runAll') {
+    group = 'stand'
+    description = 'Starts MySQL, rfr-auth, rfr-api and the frontend in the background and waits until each one is up'
+    dependsOn ':rfr-auth:bootJar', ':rfr-api:bootJar'
+    notCompatibleWithConfigurationCache('starts long-lived background processes')
+    def launcher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+    def root = rootDir
+    def logsDir = layout.buildDirectory.dir('logs')
+    def front = file('rfr-gql-client')
+
+    doLast {
+        def logs = logsDir.get().asFile
+        logs.mkdirs()
+        sh(root, 'bash localenv.sh')
+        logger.lifecycle('MySQL is healthy on :3306')
+
+        def java = launcher.get().executablePath.asFile
+        // auth must be up before api: api resolves its JWT issuer from rfr-auth
+        ['rfr-auth': 9001, 'rfr-api': 8081].each { name, port ->
+            // skip the "-plain" jar the java plugin's jar task can leave next to the boot jar
+            def jar = new File(root, "$name/build/libs").listFiles().find { it.name.endsWith('.jar') && !it.name.endsWith('-plain.jar') }
+            startInBackground(name, port, "'$java' -jar '$jar'", root, logs)
+        }
+
+        if (!new File(front, 'node_modules').exists()) {
+            sh(front, 'npm ci')
+        }
+        startInBackground('rfr-gql-client', 3001, 'npm run dev', front, logs)
+    }
+}
+
+tasks.register('stopAll') {
+    group = 'stand'
+    description = 'Stops whatever listens on 3001/8081/9001 and the MySQL container (data stays in the volume)'
+    notCompatibleWithConfigurationCache('stops processes started outside Gradle')
+    def root = rootDir
+
+    doLast {
+        def ports = [3001, 8081, 9001]
+        ports.each { sh(root, "lsof -ti tcp:$it -sTCP:LISTEN | xargs kill 2>/dev/null; true") }
+        // let the apps close their DB connections before MySQL goes away
+        def deadline = System.currentTimeMillis() + 30_000
+        while (ports.any { isPortOpen(it) } && System.currentTimeMillis() < deadline) {
+            sleep(500)
+        }
+        sh(root, 'docker compose down')
+        logger.lifecycle('Stand stopped')
+    }
+}
+
+tasks.register('e2e') {
+    group = 'verification'
+    description = 'Runs all rfr-e2e tests against an already running stand (./gradlew runAll)'
+    dependsOn ':rfr-e2e:test'
+}
+
+void startInBackground(String name, int port, String command, File dir, File logs) {
+    if (isPortOpen(port)) {
+        logger.lifecycle("$name is already running on :$port")
+        return
+    }
+    def log = new File(logs, "${name}.log")
+    // </dev/null and nohup detach the process from this build, so it outlives the Gradle task
+    long pid = sh(dir, "nohup $command > '$log' 2>&1 < /dev/null & echo \$!").trim() as long
+    def deadline = System.currentTimeMillis() + 180_000
+    while (!isPortOpen(port)) {
+        if (!ProcessHandle.of(pid).map { it.isAlive() }.orElse(false)) {
+            throw new GradleException("$name exited during startup, see $log")
+        }
+        if (System.currentTimeMillis() > deadline) {
+            throw new GradleException("$name did not open :$port within 3 minutes, see $log")
+        }
+        sleep(1000)
+    }
+    logger.lifecycle("$name is up on :$port (log: ${rootDir.toPath().relativize(log.toPath())})")
+}
+
+// tries every address of localhost: vite listens only on ::1, the Spring apps on 0.0.0.0
+boolean isPortOpen(int port) {
+    InetAddress.getAllByName('localhost').any { address ->
+        try {
+            new Socket(address, port).close()
+            true
+        } catch (IOException ignored) {
+            false
+        }
+    }
+}
+
+String sh(File dir, String command) {
+    def process = new ProcessBuilder('bash', '-c', command).directory(dir).redirectErrorStream(true).start()
+    def output = process.inputStream.text
+    if (process.waitFor() != 0) {
+        throw new GradleException("`$command` failed:\n$output")
+    }
+    output
+}
