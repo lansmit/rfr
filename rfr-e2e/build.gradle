@@ -47,6 +47,22 @@ allure {
     }
 }
 
+tasks.register('installPlaywright', JavaExec) {
+    group = 'verification'
+    description = 'Downloads Chromium for the tests'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.microsoft.playwright.CLI'
+    args 'install', 'chromium'
+}
+
+tasks.register('installPlaywrightWithDeps', JavaExec) {
+    group = 'verification'
+    description = 'Downloads Chromium together with the system libraries it needs on Linux (CI)'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.microsoft.playwright.CLI'
+    args 'install', '--with-deps', 'chromium'
+}
+
 test {
     useJUnitPlatform()
     // results depend on the running stand, not only on the test code, so never reuse a previous run

@@ -14,7 +14,7 @@ UI tests: JUnit 6 + Playwright Java + Allure 3. Design notes, structure and cove
 - Start the whole stand first (root `CLAUDE.md`): tests use the real services and both DBs.
 - Run tests through Gradle: it attaches the AspectJ agent that Allure `@Step` needs.
 - Call a test working only after a Gradle run passes; walking the scenario through Playwright MCP is not a test run.
-- Expect the first run to be slow: Playwright downloads Chromium.
+- Run `./gradlew :rfr-e2e:installPlaywright` once on a new machine; otherwise the first test downloads all three browsers. In CI use `installPlaywrightWithDeps`: Ubuntu runners lack Chromium's system libraries.
 - Keep parallel execution off (`src/test/resources/junit-platform.properties`) unless asked to enable it.
 
 ## Writing tests

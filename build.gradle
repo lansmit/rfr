@@ -56,8 +56,13 @@ tasks.register('runAll') {
     doLast {
         def logs = logsDir.get().asFile
         logs.mkdirs()
-        sh(root, 'bash localenv.sh')
-        logger.lifecycle('MySQL is healthy on :3306')
+        // in CI MySQL comes from the job's services container, and compose would fail on the taken port
+        if (isPortOpen(3306)) {
+            logger.lifecycle('MySQL is already running on :3306')
+        } else {
+            sh(root, 'bash localenv.sh')
+            logger.lifecycle('MySQL is healthy on :3306')
+        }
 
         def java = launcher.get().executablePath.asFile
         // auth must be up before api: api resolves its JWT issuer from rfr-auth
