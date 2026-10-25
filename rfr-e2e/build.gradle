@@ -35,6 +35,7 @@ dependencies {
     testRuntimeOnly "com.mysql:mysql-connector-j"
 
     testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation "org.junit.platform:junit-platform-testkit"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     testRuntimeOnly "org.aspectj:aspectjrt:$aspectJVersion"
 }
@@ -64,7 +65,9 @@ tasks.register('installPlaywrightWithDeps', JavaExec) {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'probe-target'
+    }
     // results depend on the running stand, not only on the test code, so never reuse a previous run
     outputs.upToDateWhen { false }
     jvmArgumentProviders.add({ ["-javaagent:${configurations.agent.singleFile}"] } as CommandLineArgumentProvider)

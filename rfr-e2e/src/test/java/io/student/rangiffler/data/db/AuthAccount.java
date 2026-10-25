@@ -50,7 +50,7 @@ public record AuthAccount(UUID id, String username, String password) {
 
   public boolean exists() {
     return client(AUTH).sql(sql("sql/auth/exists_user.sql"))
-        .param("id", toBytes(id))
+        .param("username", username)
         .query(Boolean.class)
         .single();
   }
