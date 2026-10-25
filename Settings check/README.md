@@ -1,12 +1,13 @@
-# Settings check
+# Проверка настройки агента
 
-## Agent setup
+## Настройка
 
-- Agent: Claude Code
+- Агент: Claude Code
 - Skill: `.claude/skills/rfr-page-objects/SKILL.md` (`name: rfr-page-objects`)
-- Playwright MCP: `.mcp.json` → `npx @playwright/mcp@0.0.83 --isolated`, enabled in `.claude/settings.json` (`enabledMcpjsonServers`) *(lesson 2)*
-- Agent instructions: root `CLAUDE.md` plus a `CLAUDE.md` per module (`rfr-api`, `rfr-auth`, `rfr-gql-client`, `rfr-e2e`) *(lesson 2)*
-- IntelliJ IDEA MCP (from the IDE, not in the repo); its read-only tools are allowed in `.claude/settings.json` *(lesson 2)*
+- Playwright MCP: `.mcp.json` → `npx @playwright/mcp@0.0.83 --isolated`, одобрен в `.claude/settings.json` (`enabledMcpjsonServers`) *(занятие 2)*
+- Инструкции для агента: корневой `CLAUDE.md` и `CLAUDE.md` в каждом модуле (`rfr-api`, `rfr-auth`, `rfr-gql-client`, `rfr-e2e`) *(занятие 2)*
+- IntelliJ IDEA MCP (подключается из IDE, в репозитории не хранится); его read-only инструменты разрешены в `.claude/settings.json` *(занятие 2)*
+- Хуки: компиляция и lint после каждой правки, запрет push и удаления файлов. Их реальный вывод на заведомо некорректных правках и запрещённых командах — в [hooks-check.md](hooks-check.md) *(занятие 2)*
 
 ## Q1: Какие правила skill rfr-page-objects относятся к конструктору и проверкам?
 
@@ -32,30 +33,30 @@
 
 ## Q2: Через Playwright MCP перечисли роли и доступные имена элементов на http://localhost:3001
 
-Calls: `browser_navigate` → `http://localhost:3001`, then `browser_snapshot`. A user who isn't logged in sees the landing page. The raw snapshot is in [landing-snapshot.yml](landing-snapshot.yml).
+Вызовы: `browser_navigate` → `http://localhost:3001`, затем `browser_snapshot`. Пользователь без входа видит стартовую страницу. Исходный снимок — в [landing-snapshot.yml](landing-snapshot.yml).
 
-| Role | Accessible name | Notes |
+| Роль | Доступное имя | Примечание |
 |---|---|---|
-| `heading` (level 2) | `Rangiffler logo Rangiffler` | name is the `alt` of the logo plus the text |
-| `img` | `Rangiffler logo` | inside the heading |
-| `paragraph` | — | "Share your best places with Rangiffler" |
+| `heading` (level 2) | `Rangiffler logo Rangiffler` | имя складывается из `alt` логотипа и текста |
+| `img` | `Rangiffler logo` | внутри заголовка |
+| `paragraph` | — | «Share your best places with Rangiffler» |
 | `button` | `Login` | |
-| `separator` | — | contains the text "New here?" |
-| `paragraph` | — | "If you don't have account, we're waiting for you to join our journey" |
+| `separator` | — | содержит текст «New here?» |
+| `paragraph` | — | «If you don't have account, we're waiting for you to join our journey» |
 | `link` | `Register` | `href` → `http://localhost:9001/register?theme=light` |
 
-The browser console has one error, `GetUser: Unauthorized`. That's expected for a visitor who isn't logged in: the app gets that error and shows the landing page.
+В консоли браузера одна ошибка — `GetUser: Unauthorized`. Для посетителя без входа это ожидаемо: приложение получает эту ошибку и показывает стартовую страницу.
 
-Locators for the page object, following the skill's rules:
+Локаторы для Page Object по правилам skill:
 
 ```java
 page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Login").setExact(true));
 page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("Register").setExact(true));
 ```
 
-Agent answer in the terminal:
+Ответ агента в терминале:
 
-![Q2 answer from Claude Code via Playwright MCP](q2-mcp-answer.png)
+![Ответ Claude Code на Q2 через Playwright MCP](q2-mcp-answer.png)
 
 ## Правила, добавленные в skill
 

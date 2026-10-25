@@ -20,19 +20,26 @@ Stack: Java 25 (Gradle toolchain), Gradle 9.7.1 wrapper, Spring Boot 4.1.1 (BOM 
 ## Commands
 
 ```bash
-./gradlew runAll                 # whole stand in the background (MySQL → auth → api → frontend), returns when all are up; logs in build/logs/
-./gradlew stopAll                # stop it all (MySQL via docker compose down, data kept)
+# whole stand in the background (MySQL → auth → api → frontend), returns when all are up; logs in build/logs/
+./gradlew runAll
+# stop it all (MySQL via docker compose down, data kept)
+./gradlew stopAll
 
-bash localenv.sh                 # MySQL via docker-compose.yml (root/secret, :3306), returns once the DB is healthy
-bash ports.sh                    # kill whatever listens on 9001/8081/3001
+# MySQL via docker-compose.yml (root/secret, :3306), returns once the DB is healthy
+bash localenv.sh
+# kill whatever listens on 9001/8081/3001
+bash ports.sh
 
-./gradlew :rfr-auth:bootRun      # start auth first — rfr-api fetches JWKS from it
+# start auth first — rfr-api fetches JWKS from it
+./gradlew :rfr-auth:bootRun
 ./gradlew :rfr-api:bootRun
-./gradlew build                  # also runs :rfr-e2e:test, so it needs the stand; to only compile: :rfr-auth:build :rfr-api:build :rfr-e2e:testClasses
+# also runs :rfr-e2e:test, so it needs the stand; to only compile: :rfr-auth:build :rfr-api:build :rfr-e2e:testClasses
+./gradlew build
 
-./gradlew e2e                    # all rfr-e2e tests; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
+# all rfr-e2e tests; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
+./gradlew e2e
 
-cd rfr-gql-client && npm i && npm run dev
+cd rfr-gql-client && npm ci && npm run dev
 ```
 
 Never delete files: `rm` is denied. To drop a file, rename it to `<name>.bak` (`mv file file.bak`) and tell the user. `git push` is denied too — the user pushes.
@@ -53,6 +60,9 @@ Put schema changes into a new Flyway migration under `src/main/resources/db/migr
 - Map exceptions in every service as `GraphQlExceptionResolver` does: `ResourceNotFoundException` → `NOT_FOUND`; `FriendshipActionException` and `IllegalArgumentException` → `BAD_REQUEST`; anything else → `INTERNAL_ERROR` without details. Respond HTTP 200 with `errors[]`.
 - Put user-facing text only into `BAD_REQUEST`/`NOT_FOUND` messages: the frontend shows only those.
 - In negative e2e tests assert on `extensions.classification` + `message`.
+
+### Frontend
+- Read `rfr-gql-client/CLAUDE.md` before answering about or asserting on frontend behavior: it says how to match GraphQL requests and how to check that a mutation was saved.
 
 ### Mocks
 - Don't test persistence of feed, photos, likes or stats yet: they are mocks in rfr-api and save nothing. Users, countries and friendship are real.

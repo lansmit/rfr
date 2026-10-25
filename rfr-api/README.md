@@ -69,8 +69,8 @@ rfr-api/
 | Создание / редактирование / лайк фото (`Mutation.photo`) | Mock: возвращает корректный объект, но ничего не сохраняет |
 | Удаление фото (`Mutation.deletePhoto`) | Mock: всегда `true`, ничего не удаляет |
 
-Таблицы `photo`, `like`, `photo_like`, `statistic` уже есть в миграции, но приложение их не использует -
-реализация фото, лайков и статистики - задача дипломного проекта.
+Таблицы `photo`, `like`, `photo_like`, `statistic` уже есть в миграции, но приложение их не использует:
+реализация фото, лайков и статистики запланирована (см. [«Статус и планы»](../README.md#статус-и-планы) в корневом README).
 
 ## GraphQL API
 
@@ -192,6 +192,8 @@ HTTP-статус GraphQL-ответа - 200 и при ошибке; прове�
 | Нет токена / нет нужной authority | `UNAUTHORIZED` / `FORBIDDEN` | Spring for GraphQL |
 | Прочие | `INTERNAL_ERROR` | Без деталей |
 
+Фронтенд показывает текст ошибки в снэкбаре только для `BAD_REQUEST` и `NOT_FOUND` (`rfr-gql-client/src/api/graphqlError.ts`), поэтому понятный пользователю текст есть только в этих двух классах, а внутренние детали наружу не уходят. Негативные e2e-тесты проверяют `classification` и `message`.
+
 ## Security
 
 - `POST /graphql` пропускается фильтрами, доступ проверяется на контроллерах:
@@ -202,7 +204,160 @@ HTTP-статус GraphQL-ответа - 200 и при ошибке; прове�
   в `RangifflerApiConfiguration`).
 - Username текущего пользователя - claim `sub` (`@AuthenticationPrincipal Jwt`).
 - Невалидный или просроченный Bearer-токен - HTTP 401 от фильтра, до GraphQL.
-- GraphiQL (`/graphiql`) включен, но `GET` на него требует аутентификации - см. раздел Security config в корневом README.
+- Access token живёт 30 минут (`access-token-time-to-live` в `rfr-auth/src/main/resources/application.yaml`). При logout фронтенд отзывает его через `POST /oauth2/revoke` (RFC 7009) и вызывает OIDC logout с `id_token` в `id_token_hint`. `rfr-api` проверяет JWT локально по подписи и об отзыве не знает, поэтому отозванный токен принимается до `exp`. Мгновенный отказ потребовал бы opaque-токенов и introspection.
+- GraphiQL (`/graphiql`) включён (`spring.graphql.graphiql.enabled`), но `GET` на него требует аутентификации: в фильтрах открыт только `POST /graphql`. Чтобы пользоваться им локально, нужно открыть `GET /graphiql/**` через `permitAll()`, а в запросах передавать заголовок `Authorization: Bearer <access_token>` (токен — в `localStorage` фронтенда, ключ `access_token`).
+
+## Технические решения
+
+### Пагинация и Connection-типы
+
+В `query.graphqls` используются типы `UserConnection` и `PhotoConnection`, которые в схеме не описаны, поэтому IDEA подсвечивает их красным:
+
+<img src="../IDEA-error.png" width="600">
+
+Это не ошибка: Spring for GraphQL сам строит типы `{Typename}Connection` (список `edges` + `pageInfo`) из `Slice`/`Page`, которые возвращает контроллер ([документация](https://docs.spring.io/spring-graphql/reference/request-execution.html#execution.pagination)). Java-класс нужен только для самого типа (`User`, `Photo`), его генерирует DGS Codegen. Соответствие для codegen прописано в `build.gradle`:
+
+```groovy
+generateJava {
+    typeMapping = [
+        'UserConnection' : 'org.springframework.data.domain.Page<io.student.rangiffler.model.types.User>',
+        'PhotoConnection': 'org.springframework.data.domain.Page<io.student.rangiffler.model.types.Photo>',
+        'Date'           : 'java.time.LocalDate'
+    ]
+}
+```
+
+Контроллер возвращает `Page<User>`:
+
+```java
+@QueryMapping
+public Page<User> users(@AuthenticationPrincipal Jwt principal,
+                        @Argument("page") @Nullable Integer page,
+                        @Argument("size") @Nullable Integer size,
+                        @Argument("searchQuery") @Nullable String searchQuery) {
+  return userService.allUsers(
+      principal.getClaim("sub"),
+      pageRequest(page, size),
+      searchQuery
+  );
+}
+
+private static PageRequest pageRequest(@Nullable Integer page, @Nullable Integer size) {
+  return PageRequest.of(
+      Objects.requireNonNullElse(page, DEFAULT_PAGE),
+      Objects.requireNonNullElse(size, DEFAULT_SIZE)
+  );
+}
+```
+
+- `page` и `size` — `@Nullable Integer`, а не `int`: у аргументов в схеме есть значения по умолчанию, но клиент может явно передать `null`, и примитив уронит запрос.
+- Имена аргументов указаны явно (`@Argument("page")`). Без этого Spring for GraphQL берёт имя из байткода, а для этого нужен флаг компилятора `-parameters`. Gradle его включает, а, например, сборка VS Code (`bin/main`) — нет, и приложение падает на старте с `Name for argument of type [...] not specified`.
+- Сервис превращает `Page<UserWithStatus>` из репозитория в `Page<User>` через `Page.map()`.
+
+Пагинация работает только когда данные достаются **одним запросом** в репозиторий с параметром `Pageable`. Из коллекции сущности (`user.getFriends()`) страницу получить нельзя.
+
+### Дружба: одна строка на пару пользователей
+
+Дружба хранится в таблице `friendship` одной строкой на пару: `requester` — кто отправил заявку, `addressee` — кому, статус `PENDING`/`ACCEPTED`. При принятии заявки меняется только статус. Отклонение и удаление из друзей удаляют строку.
+
+Уникальность неупорядоченной пары гарантирует БД, поэтому встречные заявки, отправленные одновременно, не создадут две строки:
+
+```sql
+user_low_id  binary(16) as (least(requester_id, addressee_id)) stored,
+user_high_id binary(16) as (greatest(requester_id, addressee_id)) stored,
+constraint uq_friendship_pair unique (user_low_id, user_high_id),
+constraint ck_friendship_distinct check (requester_id <> addressee_id)
+```
+
+В JPA дружба — самостоятельный агрегат `FriendshipEntity` со своим `FriendshipRepository`, а не коллекции внутри `UserEntity`:
+- связи `requester`/`addressee` — `@ManyToOne(fetch = LAZY)` без каскадов;
+- `@Version` — optimistic lock на случай, если один пользователь принимает заявку, а другой в этот момент её отменяет;
+- правила переходов живут в сущности: `FriendshipEntity.request(...)`, `accept(actor)`, `assertCanDecline(actor)`. Принять или отклонить заявку может только её получатель;
+- связь двух пользователей в любом направлении находится одним запросом:
+
+```java
+@Query("select f from FriendshipEntity f " +
+    "where (f.requester.id = :first and f.addressee.id = :second) " +
+    "   or (f.requester.id = :second and f.addressee.id = :first)")
+Optional<FriendshipEntity> findPair(@Param("first") UUID first, @Param("second") UUID second);
+```
+
+Конфликты параллельных изменений сервис превращает в `FriendshipActionException` (`BAD_REQUEST`), а не в `INTERNAL_ERROR`. Новая заявка сохраняется через `saveAndFlush` (ловится `DataIntegrityViolationException` от уникального индекса), после принятия или удаления вызывается явный `flush()` (ловится `OptimisticLockingFailureException`). Без явного flush SQL выполнился бы только на коммите транзакции, уже за пределами `try/catch` в методе сервиса.
+
+### Списки пользователей со статусом дружбы одним запросом
+
+Все списки людей (All People, Friends, входящие и исходящие заявки) достаются одним запросом с пагинацией и сразу со статусом дружбы относительно текущего пользователя. Результат — record `UserWithStatus`, который заполняется в JPQL через `select new`:
+
+```java
+public record UserWithStatus(
+    UUID id,
+    String username,
+    String firstname,
+    String lastName,
+    byte[] avatar,
+    String countryCode,
+    String countryName,
+    byte[] countryFlag,
+    FriendshipStatus friendshipStatus,
+    Boolean isRequester
+) {
+}
+```
+
+```java
+String SELECT_USER_WITH_STATUS =
+    "select new io.student.rangiffler.data.projection.UserWithStatus(" +
+        "u.id, u.username, u.firstname, u.lastName, u.avatar, c.code, c.name, c.flag, " +
+        "f.status, " +
+        "case when f.requester.id = :me then true when f.addressee.id = :me then false else null end) " +
+        "from UserEntity u join u.country c ";
+String PAIR_WITH_ME =
+    "FriendshipEntity f on (f.requester.id = :me and f.addressee = u) " +
+        "or (f.addressee.id = :me and f.requester = u) ";
+String ALL_USERS = SELECT_USER_WITH_STATUS + "left join " + PAIR_WITH_ME + "where u.id <> :me ";
+String FRIENDS = SELECT_USER_WITH_STATUS + "join " + PAIR_WITH_ME +
+    "where f.status = io.student.rangiffler.data.entity.FriendshipStatus.ACCEPTED ";
+
+@Query(ALL_USERS + ORDER)
+Page<UserWithStatus> findAllUsersWithFriendshipStatus(@Param("me") UUID me, Pageable pageable);
+
+@Query(ALL_USERS + SEARCH + ORDER)
+Page<UserWithStatus> findAllUsersWithFriendshipStatus(@Param("me") UUID me,
+                                                      @Param("searchQuery") String searchQuery,
+                                                      Pageable pageable);
+// friends, incomeInvitations, outcomeInvitations — так же, полный код в UserRepository
+```
+
+- `:me` — UUID текущего пользователя. Сервис один раз находит его по `username` из JWT, дальше запросы сравнивают id, а не строки.
+- Связь с текущим пользователем ищется одним `join` по паре в любом направлении, `isRequester` говорит, кто отправил заявку. Из `friendshipStatus` + `isRequester` сервис вычисляет `FriendStatus`: `ACCEPTED` → `FRIEND`, `PENDING` + `true` → `INVITATION_SENT`, `PENDING` + `false` → `INVITATION_RECEIVED`, нет связи → `NOT_FRIEND`.
+- Страна приходит в той же строке (`join u.country c`), без отдельного запроса на каждого пользователя (N+1).
+- Каждый запрос есть в двух вариантах, с поиском и без: `searchQuery` в JPQL обязателен, поэтому какой метод вызвать, решает сервис.
+
+### Вложенные поля через @SchemaMapping
+
+Поля типа, которые запрашиваются не всегда (`User.friends`, `incomeInvitations`, `outcomeInvitations`, `Feed.photos`, `Photo.likes`), заполняются отдельными методами с `@SchemaMapping`. Spring for GraphQL вызывает их, только если клиент запросил это поле:
+
+```java
+@QueryMapping
+public User user(@AuthenticationPrincipal Jwt principal) {
+  return userService.createNewUserIfNotPresent(principal.getClaim("sub")); // поле friends здесь null
+}
+
+@SchemaMapping(typeName = "User", field = "friends")
+public Page<User> friends(User user,
+                          @Argument("page") @Nullable Integer page,
+                          @Argument("size") @Nullable Integer size,
+                          @Argument("searchQuery") @Nullable String searchQuery) {
+  return userService.friends(user.getUsername(), pageRequest(page, size), searchQuery);
+}
+```
+
+Методы с `@SchemaMapping` в своём коде напрямую не вызываются.
+
+### Особенности Spring Boot 4
+
+- Jackson 3: пакеты `tools.jackson.databind.*` вместо `com.fasterxml.jackson.databind.*`.
+- HQL в `@Query` проверяется только при старте приложения (нужна БД), `./gradlew build` ошибки в запросах не находит.
 
 ## База данных
 

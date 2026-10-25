@@ -71,7 +71,7 @@ Refresh token публичному клиенту не выдается. Пос�
 
 | Токен | Кому предназначен | Содержимое | Время жизни |
 |---|---|---|---|
-| **access token** (JWT) | `rfr-api` | `sub` = username, `aud: ["rangiffler-api"]`, `authorities: ["read","write"]`, `scope` | 10 минут |
+| **access token** (JWT) | `rfr-api` | `sub` = username, `aud: ["rangiffler-api"]`, `authorities: ["read","write"]`, `scope` | 30 минут (`access-token-time-to-live` в `application.yaml`) |
 | **id_token** (JWT) | Фронтенд (`aud` = `client`) | `sub`, `sid` и др. OIDC-claims | 30 минут (фиксировано в Spring Authorization Server) |
 
 - `aud` и `authorities` добавляет `AccessTokenCustomizer` только в access token. Authorities берутся из таблицы `authority`
@@ -206,6 +206,6 @@ curl http://localhost:9001/.well-known/openid-configuration
 
 - **Токены перестали проходить после перезапуска `rfr-auth`.** Ключ подписи генерируется при старте - войдите заново.
 - **`rfr-api` отвечает 401 на валидный на вид токен.** Проверьте, что в Bearer передается access token, а не id_token
-  (у id_token `aud` = `client`), и что токен не старше 10 минут.
+  (у id_token `aud` = `client`), и что токен не старше 30 минут.
 - **CORS-ошибки.** Фронтенд должен работать на `rangiffler-front.base-uri` (`http://localhost:3001`); origins задает `CorsCustomizer`.
 - **`GET /login` сразу уводит на фронтенд.** Это ожидаемо без сохраненного OAuth-запроса - начинайте с `/oauth2/authorize`.
