@@ -1,6 +1,5 @@
-package io.student.rangiffler.data;
+package io.student.rangiffler.data.db;
 
-import io.student.rangiffler.model.TestUser;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.nio.ByteBuffer;
@@ -12,13 +11,16 @@ import static io.student.rangiffler.data.db.Jdbc.client;
 import static io.student.rangiffler.data.db.Jdbc.inTransaction;
 import static io.student.rangiffler.data.db.Jdbc.sql;
 
-public final class AuthUserRepository {
+public record AuthAccount(UUID id, String username, String password) {
 
   private static final BCryptPasswordEncoder BCRYPT = new BCryptPasswordEncoder();
   private static final List<String> AUTHORITIES = List.of("read", "write");
 
-  public TestUser create(String username, String password) {
-    UUID id = UUID.randomUUID();
+  public static AuthAccount of(String username, String password) {
+    return new AuthAccount(UUID.randomUUID(), username, password);
+  }
+
+  public void create() {
     inTransaction(AUTH, () -> {
       client(AUTH).sql(sql("sql/auth/insert_user.sql"))
           .param("id", toBytes(id))
@@ -33,10 +35,9 @@ public final class AuthUserRepository {
             .update();
       }
     });
-    return new TestUser(id, username, password);
   }
 
-  public void delete(UUID id) {
+  public void delete() {
     inTransaction(AUTH, () -> {
       client(AUTH).sql(sql("sql/auth/delete_authorities.sql"))
           .param("userId", toBytes(id))
@@ -45,6 +46,13 @@ public final class AuthUserRepository {
           .param("id", toBytes(id))
           .update();
     });
+  }
+
+  public boolean exists() {
+    return client(AUTH).sql(sql("sql/auth/exists_user.sql"))
+        .param("id", toBytes(id))
+        .query(Boolean.class)
+        .single();
   }
 
   // rfr-auth uses DelegatingPasswordEncoder, which picks the algorithm by the {id} prefix of the stored hash

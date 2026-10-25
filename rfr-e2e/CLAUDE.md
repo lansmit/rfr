@@ -18,4 +18,5 @@
 - Log in only through the UI; never put tokens into localStorage.
 - Create and delete test data only through fixtures; never use broad `DELETE`/`TRUNCATE`: other tests' data lives in the same DBs.
 - Read stand settings only through `TestConfig`; override with `-Drfr.<key>` or `RFR_<KEY>`.
-- When a new table references users, add its delete script to `ApiUserRepository`'s cleanup list before the user's own: the schema has no cascading foreign keys.
+- Put all SQL for test data into immutable records in `data/db` (`AuthAccount`, `Profile`, `Friendship`, `Friendships`) with `create()` / `delete()` / `exists()`; fixtures call only these records.
+- When a new table references users, add its delete script to `Profile`'s `DELETE_CHILDREN_SQL`: the schema has no cascading foreign keys.

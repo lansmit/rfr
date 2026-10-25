@@ -41,3 +41,6 @@ docs/
 
 # Playwright MCP artifacts
 .playwright-mcp/
+
+# Local editor settings
+.editorconfig
