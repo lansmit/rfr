@@ -31,6 +31,14 @@ class FriendshipPreconditionsTest {
   }
 
   @Test
+  @DisplayName("User created with outcome invitations sees exactly them in outcome invitations")
+  void userShouldSeeOutcomeInvitationsFromPrecondition(Page page, @User(outcomeInvitations = 2) TestUser user) {
+    login(page, user)
+        .openOutcomeInvitationsTab()
+        .checkOutcomeInvitations(usernames(user.outcomeInvitations()));
+  }
+
+  @Test
   @DisplayName("Friends and income invitations created together are shown in their own tabs")
   void userShouldSeeFriendsAndIncomeInvitationsFromPrecondition(Page page,
                                                                 @User(friends = 1, incomeInvitations = 1) TestUser user) {
