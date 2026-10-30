@@ -36,7 +36,9 @@ rfr/
 │   ├── Реальные контроллеры для пользователей и стран
 │   └── Flyway миграции БД
 ├── rfr-gql-client/        # React + TypeScript Frontend (готов)
-└── rfr-e2e/               # E2E тесты: JUnit 6 + Playwright + Allure 3 (заготовка)
+├── rfr-e2e/               # E2E тесты: JUnit 6 + Playwright + Allure 3, см. rfr-e2e/README.md
+├── .claude/skills/        # skill rfr-page-objects: правила Page Object для AI-агента
+└── Settings check/        # отчёт о проверке настройки агента (skill + Playwright MCP)
 ```
 
 **Порты:**
@@ -82,6 +84,8 @@ bash localenv.sh
 
 Скрипт запустит MySQL в Docker контейнере.
 
+> Перед этим скрипт останавливает и удаляет **все** Docker-контейнеры на машине, а не только старый контейнер MySQL.
+
 #### 2. Запусти rfr-auth:
 
 ```bash
@@ -118,6 +122,21 @@ npm run dev
 
 Mock контроллеры в rfr-api будут возвращать статические данные из JSON файлов для ленты фотографий.
 Реальная работа с пользователями и странами уже реализована через базу данных.
+
+#### 6. Запусти тесты
+
+Когда все сервисы из шагов 1–4 запущены:
+
+```bash
+./gradlew :rfr-e2e:test          # все e2e тесты
+./gradlew :rfr-e2e:allureServe   # отчёт Allure
+```
+
+Запуск одного теста, браузер с окном, настройки стенда, структура тестов и список покрытых сценариев — в [rfr-e2e/README.md](rfr-e2e/README.md).
+
+#### 7. AI-агент
+
+Для написания UI-тестов настроен Claude Code: skill [`rfr-page-objects`](.claude/skills/rfr-page-objects/SKILL.md) с правилами Page Object и Playwright MCP (`.mcp.json`). Проверка настройки и ответы агента — в [Settings check](Settings%20check/README.md).
 
 
 # Что дальше?
