@@ -4,13 +4,17 @@ import io.student.rangiffler.data.db.AuthAccount;
 import io.student.rangiffler.data.db.Friendship;
 import io.student.rangiffler.data.db.Friendships;
 import io.student.rangiffler.data.db.Profile;
+import io.student.rangiffler.jupiter.annotation.ProbeTarget;
 import io.student.rangiffler.jupiter.annotation.User;
+import io.student.rangiffler.jupiter.extension.ProbeTargetCondition;
 import io.student.rangiffler.model.TestUser;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestReporter;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
@@ -21,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,8 +38,8 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 @DisplayName("UserExtension")
 class UserExtensionTest {
 
-  private static final String PROBE = "probe-target";
   private static final String CONFLICT_USERNAME = "e2e_probe_conflict";
+  private static final String NEGATIVE_COUNT_USERNAME = "e2e_probe_negative_count";
 
   @Test
   @DisplayName("User exists in auth and API during the test and is deleted from both after it")
@@ -84,6 +89,23 @@ class UserExtensionTest {
   }
 
   @Test
+  @DisplayName("Outcome invitation exists during the test and is deleted with the invitee after it")
+  void outcomeInvitationShouldExistDuringTestAndBeDeletedAfterIt() {
+    EngineExecutionResults results = run(OutcomeInvitationsProbe.class);
+
+    results.testEvents().assertStatistics(stats -> stats.started(1).succeeded(1));
+    Map<String, String> facts = facts(results);
+    String username = facts.get("user.username");
+    String invitee = facts.get("invitee");
+    assertEquals("true", facts.get("invitation.exists"));
+
+    assertFalse(Friendship.invitation(username, invitee).exists(), "invitation left to " + invitee);
+    assertFalse(new Friendships(username).exists(), "friendship rows left for " + username);
+    assertUserDeleted(invitee);
+    assertUserDeleted(username);
+  }
+
+  @Test
   @DisplayName("Each @User parameter gets its own user, and both are deleted after the test")
   void eachParameterShouldGetOwnUser() {
     EngineExecutionResults results = run(TwoUsersProbe.class);
@@ -110,6 +132,17 @@ class UserExtensionTest {
     }
   }
 
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("negativeCountProbes")
+  @DisplayName("Negative relation count fails with IllegalArgumentException and leaves no user")
+  void negativeCountShouldFailAndLeaveNoUser(Class<?> probe) {
+    EngineExecutionResults results = run(probe);
+
+    results.testEvents().assertStatistics(stats -> stats.started(1).failed(1));
+    assertInstanceOf(IllegalArgumentException.class, failure(results).getCause());
+    assertUserDeleted(NEGATIVE_COUNT_USERNAME);
+  }
+
   @Test
   @DisplayName("@User on a parameter that is not TestUser is not resolved")
   void unsupportedParameterTypeShouldNotBeResolved() {
@@ -119,8 +152,27 @@ class UserExtensionTest {
     assertInstanceOf(ParameterResolutionException.class, failure(results));
   }
 
+  @Test
+  @DisplayName("@ProbeTarget class is skipped when it is not started by its outer test")
+  void probeShouldBeSkippedOutsideOuterTest() {
+    EngineExecutionResults results = EngineTestKit.engine("junit-jupiter")
+        .selectors(selectClass(FailingTestProbe.class))
+        .execute();
+
+    results.containerEvents().assertStatistics(stats -> stats.skipped(1));
+    results.testEvents().assertStatistics(stats -> stats.started(0));
+  }
+
+  private static Stream<Named<Class<?>>> negativeCountProbes() {
+    return Stream.of(
+        Named.of("friends = -1", NegativeFriendsProbe.class),
+        Named.of("incomeInvitations = -1", NegativeIncomeInvitationsProbe.class),
+        Named.of("outcomeInvitations = -1", NegativeOutcomeInvitationsProbe.class));
+  }
+
   private static EngineExecutionResults run(Class<?> probe) {
     return EngineTestKit.engine("junit-jupiter")
+        .configurationParameter(ProbeTargetCondition.RUN_PROBES, "true")
         .selectors(selectClass(probe))
         .execute();
   }
@@ -160,7 +212,7 @@ class UserExtensionTest {
     ));
   }
 
-  @Tag(PROBE)
+  @ProbeTarget
   static class SingleUserProbe {
 
     @Test
@@ -169,7 +221,7 @@ class UserExtensionTest {
     }
   }
 
-  @Tag(PROBE)
+  @ProbeTarget
   static class FailingTestProbe {
 
     @Test
@@ -179,7 +231,7 @@ class UserExtensionTest {
     }
   }
 
-  @Tag(PROBE)
+  @ProbeTarget
   static class PreconditionsProbe {
 
     @Test
@@ -197,7 +249,21 @@ class UserExtensionTest {
     }
   }
 
-  @Tag(PROBE)
+  @ProbeTarget
+  static class OutcomeInvitationsProbe {
+
+    @Test
+    void probe(@User(outcomeInvitations = 1) TestUser user, TestReporter reporter) {
+      report(reporter, "user", user);
+      TestUser invitee = user.outcomeInvitations().getFirst();
+      reporter.publishEntry(Map.of(
+          "invitee", invitee.username(),
+          "invitation.exists", String.valueOf(Friendship.invitation(user.username(), invitee.username()).exists())
+      ));
+    }
+  }
+
+  @ProbeTarget
   static class TwoUsersProbe {
 
     @Test
@@ -207,7 +273,7 @@ class UserExtensionTest {
     }
   }
 
-  @Tag(PROBE)
+  @ProbeTarget
   static class CreationFailureProbe {
 
     @Test
@@ -215,7 +281,31 @@ class UserExtensionTest {
     }
   }
 
-  @Tag(PROBE)
+  @ProbeTarget
+  static class NegativeFriendsProbe {
+
+    @Test
+    void probe(@User(username = NEGATIVE_COUNT_USERNAME, friends = -1) TestUser user) {
+    }
+  }
+
+  @ProbeTarget
+  static class NegativeIncomeInvitationsProbe {
+
+    @Test
+    void probe(@User(username = NEGATIVE_COUNT_USERNAME, incomeInvitations = -1) TestUser user) {
+    }
+  }
+
+  @ProbeTarget
+  static class NegativeOutcomeInvitationsProbe {
+
+    @Test
+    void probe(@User(username = NEGATIVE_COUNT_USERNAME, outcomeInvitations = -1) TestUser user) {
+    }
+  }
+
+  @ProbeTarget
   static class UnsupportedTypeProbe {
 
     @Test

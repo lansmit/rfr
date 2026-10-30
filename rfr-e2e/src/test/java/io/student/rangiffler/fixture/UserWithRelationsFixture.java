@@ -10,42 +10,45 @@ import java.util.List;
 
 import static io.student.rangiffler.fixture.Cleanup.runAll;
 
-public final class UserWithFriendsFixture implements UserFixture {
+public final class UserWithRelationsFixture implements UserFixture {
 
   private final UserFixture delegate;
+  private final Relation relation;
   private final int count;
-  private final List<UserFixture> friendFixtures = new ArrayList<>();
+  private final List<UserFixture> partnerFixtures = new ArrayList<>();
   private final List<Friendship> friendships = new ArrayList<>();
 
-  public UserWithFriendsFixture(UserFixture delegate, int count) {
+  public UserWithRelationsFixture(UserFixture delegate, Relation relation, int count) {
     this.delegate = delegate;
+    this.relation = relation;
     this.count = count;
   }
 
   @Override
   public TestUser create() {
     TestUser user = delegate.create();
-    List<TestUser> friends = new ArrayList<>();
+    List<TestUser> partners = new ArrayList<>();
     for (int i = 0; i < count; i++) {
-      UserFixture friendFixture = UserRequest.random().fixture();
-      friendFixtures.add(friendFixture);
-      TestUser friend = friendFixture.create();
-      Friendship friendship = Friendship.friends(friend.username(), user.username());
-      Allure.step("Make friends: " + friend.username() + " and " + user.username(), friendship::create);
+      UserFixture partnerFixture = UserRequest.random().fixture();
+      partnerFixtures.add(partnerFixture);
+      TestUser partner = partnerFixture.create();
+      Friendship friendship = relation.friendship(user.username(), partner.username());
+      Allure.step("Create friendship: " + friendship.requester() + " -> " + friendship.addressee()
+          + " (" + friendship.status() + ")", friendship::create);
       friendships.add(friendship);
-      friends.add(friend);
+      partners.add(partner);
     }
-    return user.withFriends(friends);
+    return relation.attach(user, partners);
   }
 
   @Override
   public void close() {
     List<Runnable> cleanups = new ArrayList<>();
     friendships.forEach(friendship -> cleanups.add(friendship::delete));
-    friendFixtures.forEach(fixture -> cleanups.add(fixture::close));
+    partnerFixtures.forEach(fixture -> cleanups.add(fixture::close));
     cleanups.add(delegate::close);
     friendships.clear();
-    friendFixtures.clear();
+    partnerFixtures.clear();
     runAll(cleanups);
   }
 }

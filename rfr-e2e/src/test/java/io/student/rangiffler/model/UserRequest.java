@@ -8,6 +8,18 @@ import static io.student.rangiffler.utils.RandomDataUtils.randomUsername;
 
 public record UserRequest(String username, String password, int friends, int incomeInvitations, int outcomeInvitations) {
 
+  public UserRequest {
+    requireNotNegative("friends", friends);
+    requireNotNegative("incomeInvitations", incomeInvitations);
+    requireNotNegative("outcomeInvitations", outcomeInvitations);
+  }
+
+  private static void requireNotNegative(String name, int count) {
+    if (count < 0) {
+      throw new IllegalArgumentException(name + " must not be negative: " + count);
+    }
+  }
+
   public static UserRequest from(User annotation) {
     return new UserRequest(
         annotation.username().isEmpty() ? randomUsername() : annotation.username(),
@@ -24,13 +36,13 @@ public record UserRequest(String username, String password, int friends, int inc
   public UserFixture fixture() {
     UserFixture fixture = new SingleUserFixture(this);
     if (friends > 0) {
-      fixture = new UserWithFriendsFixture(fixture, friends);
+      fixture = new UserWithRelationsFixture(fixture, Relation.FRIEND, friends);
     }
     if (incomeInvitations > 0) {
-      fixture = new UserWithIncomeInvitationsFixture(fixture, incomeInvitations);
+      fixture = new UserWithRelationsFixture(fixture, Relation.INCOME_INVITATION, incomeInvitations);
     }
     if (outcomeInvitations > 0) {
-      fixture = new UserWithOutcomeInvitationsFixture(fixture, outcomeInvitations);
+      fixture = new UserWithRelationsFixture(fixture, Relation.OUTCOME_INVITATION, outcomeInvitations);
     }
     return fixture;
   }
