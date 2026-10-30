@@ -9,14 +9,15 @@ description: Ревью тестового кода rfr-e2e на владени�
 
 ## Правила
 
-1. **Владелец — дерево декораторов.** В Store лежит только корень `UserFixture` из `UserRequest.fixture()`, и Store закрывает его как `AutoCloseable`. Каждый декоратор владеет своим `delegate`, своими партнёрами (`friendFixtures` / `inviterFixtures`) и созданными `Friendship`. Поля extension'а, статика и `ThreadLocal` ресурсами не владеют.
+1. **Владелец — дерево декораторов.** В Store лежит только корень `UserFixture` из `UserRequest.fixture()`, и Store закрывает его как `AutoCloseable`. Каждый декоратор владеет своим `delegate`, своими партнёрами (`partnerFixtures`) и созданными `Friendship`. Поля extension'а, статика и `ThreadLocal` ресурсами не владеют.
 2. **Регистрация до частичной подготовки.** `put` в Store идёт до `create()`. `create()` не атомарен (`AuthAccount`, `Profile`, партнёры, `Friendship`), поэтому `close()` обязан работать после падения на любом шаге.
 3. **Симметрия create/close.** Декоратор удаляет ровно то, что создал, адресно по username, в обратном порядке (свои строки → партнёры → `delegate`) через `Cleanup.runAll`, чтобы шаги были независимы и ошибки не терялись. Никаких широких `DELETE` / `TRUNCATE`.
-4. **Новое предусловие — новый декоратор.** Композиция в `UserRequest.fixture()`, а не флаг в `SingleUserFixture` и не ветка в `UserExtension`. Extension знает только `UserRequest` и `UserFixture`.
+4. **Новое предусловие — новый декоратор** (новая связь через `friendship` — константа `Relation` для `UserWithRelationsFixture`). Композиция в `UserRequest.fixture()`, а не флаг в `SingleUserFixture` и не ветка в `UserExtension`. Extension знает только `UserRequest` и `UserFixture`.
 5. **Один `@User` — один параметр `TestUser` и один ключ Store** (индекс параметра). Связанные пользователи живут внутри `TestUser` и дерева фикстур, а не отдельными параметрами.
 6. **Браузерными ресурсами владеет `BrowserExtension` (`@WebTest`).** `Page` и `BrowserContext` не создаются и не закрываются в тестах и других extension'ах.
 7. **Слои.** В `jupiter/` нет SQL и локаторов. В `data/` нет JUnit, SQL только в `data/db`, и `data/db` не зависит от `fixture/`, `jupiter/` и `test/`. В `test/` нет локаторов и SQL.
-8. **Каждый вывод подтверждён** пробой в `test/extension/UserExtensionTest` (EngineTestKit, `exists()` из `data/db`, пробы вроде `SingleUserProbe` и `FailingTestProbe`) или конкретной строкой кода. Если причина не найдена, изменений не предлагать.
+8. **Пустое состояние в UI подтверждено телом GraphQL-ответа** (нет `errors[]`, пустой список), а не только текстом-заглушкой или отсутствием строк: фронт показывает их и во время загрузки, и при ошибке.
+9. **Каждый вывод подтверждён** пробой в `test/extension/UserExtensionTest` (EngineTestKit, `exists()` из `data/db`, пробы вроде `SingleUserProbe` и `FailingTestProbe`) или конкретной строкой кода. Если причина не найдена, изменений не предлагать.
 
 ## Формат ответа
 

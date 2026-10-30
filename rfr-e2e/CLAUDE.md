@@ -20,4 +20,4 @@
 - Read stand settings only through `TestConfig`; override with `-Drfr.<key>` or `RFR_<KEY>`.
 - Put all SQL for test data into immutable records in `data/db` (`AuthAccount`, `Profile`, `Friendship`, `Friendships`) with `create()` / `delete()` / `exists()`; fixtures call only these records.
 - When a new table references users, add its delete script to `Profile`'s `DELETE_CHILDREN_SQL`: the schema has no cascading foreign keys.
-- Test extensions with EngineTestKit: put the probe classes it runs inside the test class as `static` nested classes tagged `@Tag("probe-target")` (Gradle excludes that tag), report facts with `TestReporter`, and check the DB in the outer test after the probe's store has closed.
+- Test extensions with EngineTestKit: put the probe classes it runs inside the test class as `static` nested classes annotated `@ProbeTarget` (skipped unless the outer test's `run()` sets `ProbeTargetCondition.RUN_PROBES`; Gradle also excludes its tag), report facts with `TestReporter`, and check the DB in the outer test after the probe's store has closed.
