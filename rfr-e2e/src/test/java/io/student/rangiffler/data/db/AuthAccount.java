@@ -48,6 +48,18 @@ public record AuthAccount(UUID id, String username, String password) {
     });
   }
 
+  // for accounts created by rfr-auth itself (UI registration): their id is unknown, the username is
+  public void deleteByUsername() {
+    inTransaction(AUTH, () -> {
+      client(AUTH).sql(sql("sql/auth/delete_authorities_by_username.sql"))
+          .param("username", username)
+          .update();
+      client(AUTH).sql(sql("sql/auth/delete_user_by_username.sql"))
+          .param("username", username)
+          .update();
+    });
+  }
+
   public boolean exists() {
     return client(AUTH).sql(sql("sql/auth/exists_user.sql"))
         .param("username", username)
