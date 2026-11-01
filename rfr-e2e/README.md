@@ -26,7 +26,9 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 Все команды — из корня репозитория.
 
 ```bash
-./gradlew e2e                                                              # все тесты
+./gradlew e2e                                                              # UI-тесты (@WebTest → @Tag("ui")) на поднятом стенде
+./gradlew :rfr-e2e:test                                                    # всё остальное: пробы extension'ов, демо; нужна только MySQL
+./gradlew e2e --tests '*TabTest'                                           # часть UI-тестов
 ./gradlew :rfr-e2e:test --tests 'io.student.rangiffler.test.profile.ProfileTest'   # один класс
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'         # один тест
 ./gradlew e2e -Drfr.headless=false                                         # с видимым браузером
@@ -54,7 +56,7 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 | `rfr.api.jdbc.url` | `RFR_API_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC` |
 | `rfr.db.username` | `RFR_DB_USERNAME` | `root` |
 | `rfr.db.password` | `RFR_DB_PASSWORD` | `secret` |
-| `rfr.migrationCheck` | `RFR_MIGRATIONCHECK` | `false` (задача `test` ставит `true`): сверять миграции БД с бэкендами перед прогоном |
+| `rfr.migrationCheck` | `RFR_MIGRATIONCHECK` | `false` (задача `e2e` ставит `true`): сверять миграции БД с бэкендами перед прогоном |
 | `rfr.authMigrations` | `RFR_AUTHMIGRATIONS` | `../rfr-auth/src/main/resources/db/migration/rangiffler-auth` |
 | `rfr.apiMigrations` | `RFR_APIMIGRATIONS` | `../rfr-api/src/main/resources/db/migration/rangiffler-api` |
 

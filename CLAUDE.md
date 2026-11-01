@@ -33,10 +33,10 @@ bash ports.sh
 # start auth first — rfr-api fetches JWKS from it
 ./gradlew :rfr-auth:bootRun
 ./gradlew :rfr-api:bootRun
-# also runs :rfr-e2e:test, so it needs the stand; to only compile: :rfr-auth:build :rfr-api:build :rfr-e2e:testClasses
+# also runs :rfr-e2e:test (everything except @Tag("ui")), which needs MySQL; to only compile: :rfr-auth:build :rfr-api:build :rfr-e2e:testClasses
 ./gradlew build
 
-# all rfr-e2e tests; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
+# UI tests (@Tag("ui"), i.e. @WebTest) after a one-time migration check; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
 ./gradlew e2e
 
 cd rfr-gql-client && npm ci && npm run dev
