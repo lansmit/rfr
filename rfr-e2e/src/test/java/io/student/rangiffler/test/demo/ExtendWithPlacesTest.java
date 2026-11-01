@@ -1,22 +1,22 @@
 package io.student.rangiffler.test.demo;
 
+import io.student.rangiffler.jupiter.annotation.Demo;
 import io.student.rangiffler.jupiter.extension.DemoExtension;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("demo")
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @DisplayName("Места установки @ExtendWith")
 class ExtendWithPlacesTest {
 
@@ -28,12 +28,6 @@ class ExtendWithPlacesTest {
 
   @ExtendWith(DemoExtension.class)
   abstract static class ExtendedBase {
-  }
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target({ElementType.TYPE, ElementType.METHOD})
-  @ExtendWith(DemoExtension.class)
-  @interface WithDemoExtension {
   }
 
   @Nested
@@ -95,7 +89,7 @@ class ExtendWithPlacesTest {
   }
 
   @Nested
-  @WithDemoExtension
+  @Demo
   @DisplayName("В составной аннотации")
   class OnMetaAnnotation {
 
@@ -184,7 +178,7 @@ class ExtendWithPlacesTest {
   }
 
   @Nested
-  @DisplayName("На параметре @BeforeAll")
+  @DisplayName("На параметре @BeforeAll и @AfterAll")
   class OnBeforeAllParameter {
 
     private static String value;
@@ -192,6 +186,11 @@ class ExtendWithPlacesTest {
     @BeforeAll
     static void setUp(@ExtendWith(DemoExtension.class) String resolved) {
       value = resolved;
+    }
+
+    @AfterAll
+    static void tearDown(@ExtendWith(DemoExtension.class) String resolved) {
+      value = null;
     }
 
     @Test
