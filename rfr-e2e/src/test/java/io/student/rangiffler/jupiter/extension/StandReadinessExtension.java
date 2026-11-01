@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class StandReadinessExtension implements SuiteExtension {
@@ -17,31 +18,36 @@ public class StandReadinessExtension implements SuiteExtension {
   private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(5);
   private static final Duration MIN_REQUEST_TIMEOUT = Duration.ofMillis(100);
 
-  private final boolean enabled;
-  private final Duration timeout;
-  private final List<StandService> services;
+  private final Supplier<Boolean> enabled;
+  private final Supplier<Duration> timeout;
+  private final Supplier<List<StandService>> services;
 
   public StandReadinessExtension() {
-    this(TestConfig.standCheck(), TestConfig.standTimeout(), StandService.fromConfig());
+    this(TestConfig::standCheck, TestConfig::standTimeout, StandService::fromConfig);
   }
 
-  protected StandReadinessExtension(boolean enabled, Duration timeout, List<StandService> services) {
+  protected StandReadinessExtension(
+      Supplier<Boolean> enabled,
+      Supplier<Duration> timeout,
+      Supplier<List<StandService>> services
+  ) {
     this.enabled = enabled;
     this.timeout = timeout;
-    this.services = List.copyOf(services);
+    this.services = services;
   }
 
   @Override
   public void beforeAll(ExtensionContext context) throws Exception {
-    if (enabled && context.getTags().contains(UI_TAG)) {
+    if (context.getTags().contains(UI_TAG) && enabled.get()) {
       SuiteExtension.super.beforeAll(context);
     }
   }
 
   @Override
   public void beforeSuite(ExtensionContext context) {
+    Duration timeout = this.timeout.get();
     Instant deadline = Instant.now().plus(timeout);
-    List<StandService> pending = new ArrayList<>(services);
+    List<StandService> pending = new ArrayList<>(services.get());
     while (true) {
       pending.removeIf(service -> service.check().responds(requestTimeout(deadline)));
       if (pending.isEmpty()) {
@@ -49,7 +55,7 @@ public class StandReadinessExtension implements SuiteExtension {
       }
       Duration remaining = Duration.between(Instant.now(), deadline);
       if (remaining.isNegative() || remaining.isZero()) {
-        throw new IllegalStateException(notReady(pending));
+        throw new IllegalStateException(notReady(pending, timeout));
       }
       sleep(POLL_INTERVAL.compareTo(remaining) < 0 ? POLL_INTERVAL : remaining);
     }
@@ -63,7 +69,7 @@ public class StandReadinessExtension implements SuiteExtension {
     return remaining.compareTo(REQUEST_TIMEOUT) < 0 ? remaining : REQUEST_TIMEOUT;
   }
 
-  private String notReady(List<StandService> pending) {
+  private static String notReady(List<StandService> pending, Duration timeout) {
     return "Stand is not ready after " + timeout.toSeconds() + " s, these services did not respond: "
         + pending.stream()
             .map(service -> service.name() + " (start it with '" + service.startCommand() + "')")

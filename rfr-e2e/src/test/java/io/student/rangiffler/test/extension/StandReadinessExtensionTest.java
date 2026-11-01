@@ -30,6 +30,7 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 class StandReadinessExtensionTest {
 
   private static final String SERVICE = "fake-service";
+  private static final String BROKEN_CONFIG = "rfr.standTimeout must be a whole number of seconds, got 'abc'";
 
   private static volatile URI serviceUri;
 
@@ -75,6 +76,29 @@ class StandReadinessExtensionTest {
 
       assertEquals(1L, results.testEvents().succeeded().count(), "The test did not run with the check disabled");
       assertEquals(0, service.requests(), "The disabled check polled the stand");
+    }
+  }
+
+  @Test
+  @DisplayName("Неверный конфиг ожидания не мешает классу без тега UI-тестов")
+  void brokenConfigDoesNotBreakClassWithoutUiTag() {
+    try (FakeService service = new FakeService(Duration.ZERO)) {
+      EngineExecutionResults results = run(BrokenConfigUntaggedTarget.class);
+
+      assertEquals(1L, results.testEvents().succeeded().count(), "Broken stand config broke a test without the ui tag");
+      assertEquals(0, service.requests(), "A class without the ui tag polled the stand");
+    }
+  }
+
+  @Test
+  @DisplayName("Неверный конфиг ожидания валит UI-класс ошибкой с именем ключа")
+  void brokenConfigFailsUiClassWithKeyName() {
+    try (FakeService ignored = new FakeService(Duration.ZERO)) {
+      EngineExecutionResults results = run(BrokenConfigUiTarget.class);
+
+      assertEquals(0L, results.testEvents().started().count(), "A ui test ran with a broken stand config");
+      assertTrue(failureMessages(results).stream().anyMatch(message -> message.contains("rfr.standTimeout")),
+          "The failure does not name the broken key: " + failureMessages(results));
     }
   }
 
@@ -130,19 +154,27 @@ class StandReadinessExtensionTest {
 
   static final class PatientStand extends StandReadinessExtension {
     PatientStand() {
-      super(true, Duration.ofSeconds(10), List.of(fakeService()));
+      super(() -> true, () -> Duration.ofSeconds(10), () -> List.of(fakeService()));
     }
   }
 
   static final class ImpatientStand extends StandReadinessExtension {
     ImpatientStand() {
-      super(true, Duration.ofSeconds(1), List.of(fakeService()));
+      super(() -> true, () -> Duration.ofSeconds(1), () -> List.of(fakeService()));
     }
   }
 
   static final class DisabledStand extends StandReadinessExtension {
     DisabledStand() {
-      super(false, Duration.ofSeconds(10), List.of(fakeService()));
+      super(() -> false, () -> Duration.ofSeconds(10), () -> List.of(fakeService()));
+    }
+  }
+
+  static final class BrokenConfigStand extends StandReadinessExtension {
+    BrokenConfigStand() {
+      super(() -> true, () -> {
+        throw new IllegalArgumentException(BROKEN_CONFIG);
+      }, () -> List.of(fakeService()));
     }
   }
 
@@ -167,6 +199,23 @@ class StandReadinessExtensionTest {
   @ProbeTarget
   @ExtendWith(PatientStand.class)
   static final class UntaggedTarget {
+    @Test
+    void runs() {
+    }
+  }
+
+  @ProbeTarget
+  @ExtendWith(BrokenConfigStand.class)
+  static final class BrokenConfigUntaggedTarget {
+    @Test
+    void runs() {
+    }
+  }
+
+  @ProbeTarget
+  @Tag("ui")
+  @ExtendWith(BrokenConfigStand.class)
+  static final class BrokenConfigUiTarget {
     @Test
     void runs() {
     }

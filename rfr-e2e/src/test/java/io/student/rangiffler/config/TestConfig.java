@@ -65,7 +65,12 @@ public final class TestConfig {
   }
 
   public static Duration standTimeout() {
-    return Duration.ofSeconds(Long.parseLong(get("standTimeout", String.valueOf(DEFAULT_STAND_TIMEOUT_SECONDS))));
+    String value = get("standTimeout", String.valueOf(DEFAULT_STAND_TIMEOUT_SECONDS));
+    try {
+      return Duration.ofSeconds(Long.parseLong(value));
+    } catch (NumberFormatException exception) {
+      throw new IllegalArgumentException("rfr.standTimeout must be a whole number of seconds, got '" + value + "'", exception);
+    }
   }
 
   public static boolean migrationCheck() {
