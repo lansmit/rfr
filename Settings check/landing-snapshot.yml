@@ -1,0 +1,11 @@
+- generic [ref=e9]:
+  - heading "Rangiffler logo Rangiffler" [level=2] [ref=e10]:
+    - img "Rangiffler logo" [ref=e11]
+    - generic [ref=e12]: Rangiffler
+  - paragraph [ref=e13]: Share your best places with Rangiffler
+  - button "Login" [ref=e14] [cursor=pointer]
+  - separator [ref=e15]:
+    - generic [ref=e16]: New here?
+  - paragraph [ref=e17]: If you don't have account, we're waiting for you to join our journey
+  - link "Register" [ref=e18] [cursor=pointer]:
+    - /url: http://localhost:9001/register?theme=light
