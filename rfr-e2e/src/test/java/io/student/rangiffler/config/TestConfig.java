@@ -1,11 +1,14 @@
 package io.student.rangiffler.config;
 
+import java.time.Duration;
 import java.util.Locale;
 
 public final class TestConfig {
 
   private static final String DEFAULT_FRONT_URL = "http://localhost:3001";
   private static final String DEFAULT_AUTH_URL = "http://localhost:9001";
+  private static final String DEFAULT_API_URL = "http://localhost:8081";
+  private static final int DEFAULT_STAND_TIMEOUT_SECONDS = 180;
   private static final boolean DEFAULT_HEADLESS = true;
   private static final String DEFAULT_AUTH_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC";
   private static final String DEFAULT_API_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC";
@@ -23,6 +26,10 @@ public final class TestConfig {
 
   public static String authUrl() {
     return get("auth.url", DEFAULT_AUTH_URL);
+  }
+
+  public static String apiUrl() {
+    return get("api.url", DEFAULT_API_URL);
   }
 
   public static boolean headless() {
@@ -43,6 +50,14 @@ public final class TestConfig {
 
   public static String dbPassword() {
     return get("db.password", DEFAULT_DB_PASSWORD);
+  }
+
+  public static boolean standCheck() {
+    return Boolean.parseBoolean(get("standCheck", "true"));
+  }
+
+  public static Duration standTimeout() {
+    return Duration.ofSeconds(Long.parseLong(get("standTimeout", String.valueOf(DEFAULT_STAND_TIMEOUT_SECONDS))));
   }
 
   public static boolean migrationCheck() {

@@ -51,11 +51,14 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 |---|---|---|
 | `rfr.front.url` | `RFR_FRONT_URL` | `http://localhost:3001` |
 | `rfr.auth.url` | `RFR_AUTH_URL` | `http://localhost:9001` |
+| `rfr.api.url` | `RFR_API_URL` | `http://localhost:8081` |
 | `rfr.headless` | `RFR_HEADLESS` | `true` |
 | `rfr.auth.jdbc.url` | `RFR_AUTH_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC` |
 | `rfr.api.jdbc.url` | `RFR_API_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC` |
 | `rfr.db.username` | `RFR_DB_USERNAME` | `root` |
 | `rfr.db.password` | `RFR_DB_PASSWORD` | `secret` |
+| `rfr.standCheck` | `RFR_STANDCHECK` | `true`: перед первым классом с тегом `ui` ждать MySQL, rfr-auth, rfr-api и фронт |
+| `rfr.standTimeout` | `RFR_STANDTIMEOUT` | `180` — сколько секунд ждать стенд |
 | `rfr.migrationCheck` | `RFR_MIGRATIONCHECK` | `false` (задача `e2e` ставит `true`): сверять миграции БД с бэкендами перед прогоном |
 | `rfr.authMigrations` | `RFR_AUTHMIGRATIONS` | `../rfr-auth/src/main/resources/db/migration/rangiffler-auth` |
 | `rfr.apiMigrations` | `RFR_APIMIGRATIONS` | `../rfr-api/src/main/resources/db/migration/rangiffler-api` |
@@ -69,7 +72,9 @@ src/test/
 │   ├── jupiter/
 │   │   ├── annotation/            # @WebTest, @User
 │   │   └── extension/             # BrowserExtension, UserExtension; SuiteExtension — один раз на прогон,
-│   │                              #   StandSchemaExtension — сверка миграций (META-INF/services)
+│   │                              #   StandReadinessExtension — ждёт стенд, StandSchemaExtension — сверка миграций
+│   │                              #   (обе через META-INF/services, в этом порядке)
+│   ├── stand/StandService         # сервисы стенда и признаки их готовности
 │   ├── fixture/UserFixture        # создание и удаление тестового пользователя
 │   ├── data/                      # JDBC-репозитории rangiffler-auth / rangiffler-api
 │   ├── model/                     # TestUser
