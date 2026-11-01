@@ -53,6 +53,8 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 | `rfr.auth.url` | `RFR_AUTH_URL` | `http://localhost:9001` |
 | `rfr.api.url` | `RFR_API_URL` | `http://localhost:8081` |
 | `rfr.headless` | `RFR_HEADLESS` | `true` |
+| `rfr.browser` | `RFR_BROWSER` | `chromium` (`firefox`, `webkit`) |
+| `rfr.commit` | `RFR_COMMIT` | короткий хеш `HEAD`, его передаёт Gradle; без Gradle — `unknown` |
 | `rfr.auth.jdbc.url` | `RFR_AUTH_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC` |
 | `rfr.api.jdbc.url` | `RFR_API_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC` |
 | `rfr.db.username` | `RFR_DB_USERNAME` | `root` |
@@ -72,8 +74,9 @@ src/test/
 │   ├── jupiter/
 │   │   ├── annotation/            # @WebTest, @User
 │   │   └── extension/             # BrowserExtension, UserExtension; SuiteExtension — один раз на прогон,
+│   │                              #   AllureEnvironmentExtension — environment.properties для Allure,
 │   │                              #   StandReadinessExtension — ждёт стенд, StandSchemaExtension — сверка миграций
-│   │                              #   (обе через META-INF/services, в этом порядке)
+│   │                              #   (все три через META-INF/services, в этом порядке)
 │   ├── stand/StandService         # сервисы стенда и признаки их готовности
 │   ├── fixture/UserFixture        # создание и удаление тестового пользователя
 │   ├── data/                      # JDBC-репозитории rangiffler-auth / rangiffler-api

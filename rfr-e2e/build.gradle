@@ -68,12 +68,18 @@ tasks.register('installPlaywrightWithDeps', JavaExec) {
     args 'install', '--with-deps', 'chromium'
 }
 
+def commitHash = providers.exec {
+    commandLine 'git', 'rev-parse', '--short', 'HEAD'
+    ignoreExitValue = true
+}.standardOutput.asText.map { it.trim() ?: 'unknown' }.getOrElse('unknown')
+
 tasks.withType(Test).configureEach {
     // results depend on the running stand, not only on the test code, so never reuse a previous run
     outputs.upToDateWhen { false }
     jvmArgumentProviders.add({ ["-javaagent:${configurations.agent.singleFile}"] } as CommandLineArgumentProvider)
     systemProperty 'rfr.authMigrations', rootProject.file('rfr-auth/src/main/resources/db/migration/rangiffler-auth').absolutePath
     systemProperty 'rfr.apiMigrations', rootProject.file('rfr-api/src/main/resources/db/migration/rangiffler-api').absolutePath
+    systemProperty 'rfr.commit', commitHash
 }
 
 test {

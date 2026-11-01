@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.output.ValidateResult;
 import org.flywaydb.core.api.pattern.ValidatePattern;
 
@@ -40,6 +42,21 @@ public final class Migrations {
     return result.validationSuccessful
         ? Optional.empty()
         : Optional.of(database.schema() + ": " + String.join("; ", problems(result)));
+  }
+
+  public Optional<String> currentVersion() {
+    try {
+      MigrationInfo current = Flyway.configure()
+          .dataSource(database.dataSource())
+          .schemas(database.schema())
+          .locations("filesystem:" + location.toAbsolutePath())
+          .load()
+          .info()
+          .current();
+      return Optional.of(current == null ? "none" : current.getVersion().getVersion());
+    } catch (FlywayException exception) {
+      return Optional.empty();
+    }
   }
 
   private List<String> problems(ValidateResult result) {

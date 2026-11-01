@@ -32,6 +32,14 @@ public final class TestConfig {
     return get("api.url", DEFAULT_API_URL);
   }
 
+  public static String browser() {
+    return get("browser", "chromium");
+  }
+
+  public static String commit() {
+    return get("commit", "unknown");
+  }
+
   public static boolean headless() {
     return Boolean.parseBoolean(get("headless", String.valueOf(DEFAULT_HEADLESS)));
   }
