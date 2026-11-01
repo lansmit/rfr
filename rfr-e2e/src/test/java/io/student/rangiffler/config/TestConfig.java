@@ -11,6 +11,8 @@ public final class TestConfig {
   private static final String DEFAULT_API_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC";
   private static final String DEFAULT_DB_USERNAME = "root";
   private static final String DEFAULT_DB_PASSWORD = "secret";
+  private static final String DEFAULT_AUTH_MIGRATIONS = "../rfr-auth/src/main/resources/db/migration/rangiffler-auth";
+  private static final String DEFAULT_API_MIGRATIONS = "../rfr-api/src/main/resources/db/migration/rangiffler-api";
 
   private TestConfig() {
   }
@@ -41,6 +43,18 @@ public final class TestConfig {
 
   public static String dbPassword() {
     return get("db.password", DEFAULT_DB_PASSWORD);
+  }
+
+  public static boolean migrationCheck() {
+    return Boolean.parseBoolean(get("migrationCheck", "false"));
+  }
+
+  public static String authMigrations() {
+    return get("authMigrations", DEFAULT_AUTH_MIGRATIONS);
+  }
+
+  public static String apiMigrations() {
+    return get("apiMigrations", DEFAULT_API_MIGRATIONS);
   }
 
   private static String get(String key, String defaultValue) {

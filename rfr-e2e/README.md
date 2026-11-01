@@ -54,6 +54,9 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 | `rfr.api.jdbc.url` | `RFR_API_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC` |
 | `rfr.db.username` | `RFR_DB_USERNAME` | `root` |
 | `rfr.db.password` | `RFR_DB_PASSWORD` | `secret` |
+| `rfr.migrationCheck` | `RFR_MIGRATIONCHECK` | `false` (задача `test` ставит `true`): сверять миграции БД с бэкендами перед прогоном |
+| `rfr.authMigrations` | `RFR_AUTHMIGRATIONS` | `../rfr-auth/src/main/resources/db/migration/rangiffler-auth` |
+| `rfr.apiMigrations` | `RFR_APIMIGRATIONS` | `../rfr-api/src/main/resources/db/migration/rangiffler-api` |
 
 ## Структура
 
@@ -63,7 +66,8 @@ src/test/
 │   ├── config/TestConfig          # адреса стенда, БД, headless
 │   ├── jupiter/
 │   │   ├── annotation/            # @WebTest, @User
-│   │   └── extension/             # BrowserExtension, UserExtension
+│   │   └── extension/             # BrowserExtension, UserExtension; SuiteExtension — один раз на прогон,
+│   │                              #   StandSchemaExtension — сверка миграций (META-INF/services)
 │   ├── fixture/UserFixture        # создание и удаление тестового пользователя
 │   ├── data/                      # JDBC-репозитории rangiffler-auth / rangiffler-api
 │   ├── model/                     # TestUser
