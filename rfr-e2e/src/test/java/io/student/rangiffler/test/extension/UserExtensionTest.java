@@ -38,8 +38,8 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 @DisplayName("UserExtension")
 class UserExtensionTest {
 
-  private static final String CONFLICT_USERNAME = "e2e_probe_conflict";
-  private static final String NEGATIVE_COUNT_USERNAME = "e2e_probe_negative_count";
+  private static final String CONFLICT_USERNAME = "rfr_probe_conflict";
+  private static final String NEGATIVE_COUNT_USERNAME = "rfr_probe_negative_count";
 
   @Test
   @DisplayName("User exists in auth and API during the test and is deleted from both after it")
