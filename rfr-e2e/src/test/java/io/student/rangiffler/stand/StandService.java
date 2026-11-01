@@ -11,8 +11,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public record StandService(String name, String startCommand, Check check) {
+
+  private static final Pattern MYSQL_JDBC_URL = Pattern.compile("jdbc:mysql://([^:/?#]+)(?::(\\d+))?([/?#].*)?");
+  private static final int MYSQL_DEFAULT_PORT = 3306;
 
   @FunctionalInterface
   public interface Check {
@@ -20,12 +25,22 @@ public record StandService(String name, String startCommand, Check check) {
   }
 
   public static List<StandService> fromConfig() {
-    URI mysql = URI.create(TestConfig.authJdbcUrl().substring("jdbc:".length()));
+    InetSocketAddress mysql = mysqlAddress(TestConfig.authJdbcUrl());
     return List.of(
-        tcp("MySQL", "docker compose up -d --wait", mysql.getHost(), mysql.getPort()),
+        tcp("MySQL", "docker compose up -d --wait", mysql.getHostString(), mysql.getPort()),
         httpGet("rfr-auth", "./gradlew runAll", URI.create(TestConfig.authUrl() + "/.well-known/openid-configuration")),
         graphql("rfr-api", "./gradlew runAll", URI.create(TestConfig.apiUrl() + "/graphql")),
         httpGet("rfr-gql-client", "cd rfr-gql-client && npm run dev", URI.create(TestConfig.frontUrl())));
+  }
+
+  public static InetSocketAddress mysqlAddress(String jdbcUrl) {
+    Matcher matcher = MYSQL_JDBC_URL.matcher(jdbcUrl);
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException(
+          "Cannot read the MySQL host and port from rfr.auth.jdbc.url '" + jdbcUrl + "', expected jdbc:mysql://host[:port]/schema");
+    }
+    int port = matcher.group(2) == null ? MYSQL_DEFAULT_PORT : Integer.parseInt(matcher.group(2));
+    return InetSocketAddress.createUnresolved(matcher.group(1), port);
   }
 
   public static StandService tcp(String name, String startCommand, String host, int port) {
