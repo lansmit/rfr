@@ -54,6 +54,12 @@ public class AllureEnvironmentExtension implements SuiteExtension {
   }
 
   protected static Map<String, String> standEnvironment() {
+    return environment(
+        new Migrations(Databases.AUTH, TestConfig.authMigrations()),
+        new Migrations(Databases.API, TestConfig.apiMigrations()));
+  }
+
+  protected static Map<String, String> environment(Migrations authMigrations, Migrations apiMigrations) {
     Map<String, String> environment = new LinkedHashMap<>();
     environment.put("frontUrl", TestConfig.frontUrl());
     environment.put("authUrl", TestConfig.authUrl());
@@ -61,8 +67,8 @@ public class AllureEnvironmentExtension implements SuiteExtension {
     environment.put("browser", TestConfig.browser());
     environment.put("headless", String.valueOf(TestConfig.headless()));
     environment.put("commit", TestConfig.commit());
-    environment.put("authSchemaVersion", schemaVersion(new Migrations(Databases.AUTH, TestConfig.authMigrations())));
-    environment.put("apiSchemaVersion", schemaVersion(new Migrations(Databases.API, TestConfig.apiMigrations())));
+    environment.put("authSchemaVersion", schemaVersion(authMigrations));
+    environment.put("apiSchemaVersion", schemaVersion(apiMigrations));
     return environment;
   }
 

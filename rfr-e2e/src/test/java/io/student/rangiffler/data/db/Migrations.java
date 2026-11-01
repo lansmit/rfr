@@ -12,8 +12,11 @@ import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.output.ValidateResult;
 import org.flywaydb.core.api.pattern.ValidatePattern;
 
+import javax.sql.DataSource;
+
 public final class Migrations {
-  private final Databases database;
+  private final String schema;
+  private final DataSource dataSource;
   private final Path location;
 
   public Migrations(Databases database, String location) {
@@ -21,18 +24,23 @@ public final class Migrations {
   }
 
   public Migrations(Databases database, Path location) {
-    this.database = database;
+    this(database.schema(), database.dataSource(), location);
+  }
+
+  public Migrations(String schema, DataSource dataSource, Path location) {
+    this.schema = schema;
+    this.dataSource = dataSource;
     this.location = location;
   }
 
   public Optional<String> mismatch() {
     if (!Files.isDirectory(location)) {
       throw new IllegalStateException(
-          "Migrations directory " + location.toAbsolutePath() + " of schema " + database.schema() + " does not exist");
+          "Migrations directory " + location.toAbsolutePath() + " of schema " + schema + " does not exist");
     }
     ValidateResult result = Flyway.configure()
-        .dataSource(database.dataSource())
-        .schemas(database.schema())
+        .dataSource(dataSource)
+        .schemas(schema)
         .locations("filesystem:" + location.toAbsolutePath())
         .baselineOnMigrate(true)
         .baselineVersion("0")
@@ -41,14 +49,14 @@ public final class Migrations {
         .validateWithResult();
     return result.validationSuccessful
         ? Optional.empty()
-        : Optional.of(database.schema() + ": " + String.join("; ", problems(result)));
+        : Optional.of(schema + ": " + String.join("; ", problems(result)));
   }
 
   public Optional<String> currentVersion() {
     try {
       MigrationInfo current = Flyway.configure()
-          .dataSource(database.dataSource())
-          .schemas(database.schema())
+          .dataSource(dataSource)
+          .schemas(schema)
           .locations("filesystem:" + location.toAbsolutePath())
           .load()
           .info()

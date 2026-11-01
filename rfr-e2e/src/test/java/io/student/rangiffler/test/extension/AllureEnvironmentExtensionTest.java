@@ -1,5 +1,6 @@
 package io.student.rangiffler.test.extension;
 
+import io.student.rangiffler.data.db.Migrations;
 import io.student.rangiffler.jupiter.annotation.ProbeTarget;
 import io.student.rangiffler.jupiter.extension.AllureEnvironmentExtension;
 import io.student.rangiffler.jupiter.extension.ProbeTargetCondition;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.platform.testkit.engine.EngineTestKit;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -38,13 +40,19 @@ class AllureEnvironmentExtensionTest {
     resultsDirectory = dir;
     run(RecordedTarget.class);
 
-    Path file = dir.resolve("environment.properties");
-    assertTrue(Files.exists(file), "environment.properties was not written to " + dir);
-    Properties properties = new Properties();
-    try (Reader reader = Files.newBufferedReader(file)) {
-      properties.load(reader);
-    }
+    Properties properties = load(dir.resolve("environment.properties"));
     assertEquals(KEYS, properties.stringPropertyNames(), "environment.properties does not have exactly the expected keys");
+  }
+
+  @Test
+  @DisplayName("MySQL недоступна — файл пишется, версии схем unavailable")
+  void unavailableDatabaseIsReportedAsUnavailable(@TempDir Path dir) throws IOException {
+    resultsDirectory = dir;
+    run(UnreachableDatabaseTarget.class);
+
+    Properties properties = load(dir.resolve("environment.properties"));
+    assertEquals("unavailable", properties.getProperty("authSchemaVersion"), "Unreachable auth schema is not unavailable");
+    assertEquals("unavailable", properties.getProperty("apiSchemaVersion"), "Unreachable api schema is not unavailable");
   }
 
   @Test
@@ -67,6 +75,21 @@ class AllureEnvironmentExtensionTest {
         "AllureEnvironmentExtension registered after a failed beforeSuite still wrote its file");
   }
 
+  private static Properties load(Path file) throws IOException {
+    assertTrue(Files.exists(file), "environment.properties was not written to " + file.getParent());
+    Properties properties = new Properties();
+    try (Reader reader = Files.newBufferedReader(file)) {
+      properties.load(reader);
+    }
+    return properties;
+  }
+
+  private static Migrations unreachable(String schema) {
+    return new Migrations(schema,
+        new DriverManagerDataSource("jdbc:mysql://127.0.0.1:1/" + schema, "root", "secret"),
+        Path.of("build", "no-migrations"));
+  }
+
   private static void run(Class<?> target) {
     EngineTestKit.engine("junit-jupiter")
         .configurationParameter(ProbeTargetCondition.RUN_PROBES, "true")
@@ -77,6 +100,12 @@ class AllureEnvironmentExtensionTest {
   static final class TemporaryResults extends AllureEnvironmentExtension {
     TemporaryResults() {
       super(resultsDirectory, AllureEnvironmentExtension::standEnvironment);
+    }
+  }
+
+  static final class UnreachableDatabase extends AllureEnvironmentExtension {
+    UnreachableDatabase() {
+      super(resultsDirectory, () -> environment(unreachable("rangiffler-auth"), unreachable("rangiffler-api")));
     }
   }
 
@@ -91,6 +120,15 @@ class AllureEnvironmentExtensionTest {
   @Tag("ui")
   @ExtendWith(TemporaryResults.class)
   static final class RecordedTarget {
+    @Test
+    void runs() {
+    }
+  }
+
+  @ProbeTarget
+  @Tag("ui")
+  @ExtendWith(UnreachableDatabase.class)
+  static final class UnreachableDatabaseTarget {
     @Test
     void runs() {
     }
