@@ -40,6 +40,7 @@ dependencies {
 
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation "org.junit.platform:junit-platform-testkit"
+    testImplementation "org.junit.platform:junit-platform-suite"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     testRuntimeOnly "org.aspectj:aspectjrt:$aspectJVersion"
 }
@@ -78,6 +79,7 @@ tasks.withType(Test).configureEach {
 
 test {
     useJUnitPlatform {
+        excludeEngines 'junit-platform-suite'
         excludeTags 'probe-target'
     }
     // an explicit --tests filter may pick a single UI test, so UI tests are excluded only without one
@@ -96,8 +98,7 @@ tasks.register('e2e', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform {
-        includeTags 'ui'
-        excludeTags 'probe-target'
+        includeEngines 'junit-platform-suite'
     }
     systemProperty 'rfr.migrationCheck', 'true'
     systemProperties System.getProperties().findAll { it.key.toString().startsWith('rfr.') }
