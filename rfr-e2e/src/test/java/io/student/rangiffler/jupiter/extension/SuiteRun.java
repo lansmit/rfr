@@ -9,7 +9,7 @@ final class SuiteRun implements AutoCloseable {
   private final SuiteExtension extension;
   private final ExtensionContext context;
   private final AtomicBoolean started;
-  private final List<RuntimeException> failures;
+  private final List<Throwable> failures;
 
   SuiteRun(SuiteExtension extension, ExtensionContext context) {
     this(extension, context, new AtomicBoolean(), new CopyOnWriteArrayList<>());
@@ -19,7 +19,7 @@ final class SuiteRun implements AutoCloseable {
       SuiteExtension extension,
       ExtensionContext context,
       AtomicBoolean started,
-      List<RuntimeException> failures
+      List<Throwable> failures
   ) {
     this.extension = extension;
     this.context = context;
@@ -31,12 +31,16 @@ final class SuiteRun implements AutoCloseable {
     if (started.compareAndSet(false, true)) {
       try {
         extension.beforeSuite(context);
-      } catch (RuntimeException failure) {
+      } catch (RuntimeException | Error failure) {
         failures.add(failure);
       }
     }
     if (!failures.isEmpty()) {
-      throw failures.getFirst();
+      Throwable failure = failures.getFirst();
+      if (failure instanceof Error error) {
+        throw error;
+      }
+      throw (RuntimeException) failure;
     }
   }
 
@@ -44,7 +48,7 @@ final class SuiteRun implements AutoCloseable {
   public void close() {
     try {
       extension.afterSuite(context);
-    } catch (RuntimeException failure) {
+    } catch (RuntimeException | Error failure) {
       failures.forEach(failure::addSuppressed);
       throw failure;
     }
