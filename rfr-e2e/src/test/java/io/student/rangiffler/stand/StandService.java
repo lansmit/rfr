@@ -3,14 +3,19 @@ package io.student.rangiffler.stand;
 import io.student.rangiffler.config.TestConfig;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,14 +60,35 @@ public record StandService(String name, String startCommand, Check check) {
   }
 
   public static StandService httpGet(String name, String startCommand, URI uri) {
-    return new StandService(name, startCommand,
-        timeout -> status(HttpRequest.newBuilder(uri).GET(), timeout) / 100 == 2);
+    return new StandService(name, startCommand, timeout -> anyAddress(uri,
+        address -> status(HttpRequest.newBuilder(address).GET(), timeout) / 100 == 2));
   }
 
   public static StandService graphql(String name, String startCommand, URI uri) {
-    return new StandService(name, startCommand, timeout -> status(HttpRequest.newBuilder(uri)
-        .header("Content-Type", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString("{\"query\":\"{__typename}\"}")), timeout) > 0);
+    return new StandService(name, startCommand, timeout -> anyAddress(uri,
+        address -> status(HttpRequest.newBuilder(address)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString("{\"query\":\"{__typename}\"}")), timeout) > 0));
+  }
+
+  // HttpClient connects only to the first address of a host, while vite may listen only on ::1
+  private static boolean anyAddress(URI uri, Predicate<URI> responds) {
+    InetAddress[] addresses;
+    try {
+      addresses = InetAddress.getAllByName(uri.getHost());
+    } catch (UnknownHostException exception) {
+      return false;
+    }
+    return Arrays.stream(addresses).map(address -> withHost(uri, address)).anyMatch(responds);
+  }
+
+  private static URI withHost(URI uri, InetAddress address) {
+    try {
+      return new URI(uri.getScheme(), uri.getUserInfo(), address.getHostAddress(), uri.getPort(),
+          uri.getPath(), uri.getQuery(), uri.getFragment());
+    } catch (URISyntaxException exception) {
+      throw new IllegalArgumentException("Cannot put address " + address + " into " + uri, exception);
+    }
   }
 
   private static int status(HttpRequest.Builder request, Duration timeout) {

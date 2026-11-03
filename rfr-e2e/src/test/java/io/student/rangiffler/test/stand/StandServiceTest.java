@@ -1,16 +1,21 @@
 package io.student.rangiffler.test.stand;
 
+import com.sun.net.httpserver.HttpServer;
 import io.student.rangiffler.stand.StandService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("StandService: адрес MySQL из JDBC URL")
+@DisplayName("StandService: адреса сервисов стенда")
 class StandServiceTest {
 
   @Test
@@ -37,6 +42,25 @@ class StandServiceTest {
     InetSocketAddress address = StandService.mysqlAddress("jdbc:mysql://rfr_mysql:3306/rangiffler-auth");
 
     assertEquals("rfr_mysql", address.getHostString(), "Host with an underscore was not read");
+  }
+
+  @Test
+  @DisplayName("Сервис слушает только ::1 — HTTP-проверка по localhost до него достаёт")
+  void httpCheckReachesServiceListeningOnlyOnIpv6Loopback() throws IOException {
+    HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getByName("::1"), 0), 0);
+    server.createContext("/", exchange -> {
+      exchange.sendResponseHeaders(200, -1);
+      exchange.close();
+    });
+    server.start();
+    try {
+      URI uri = URI.create("http://localhost:" + server.getAddress().getPort() + "/");
+
+      assertTrue(StandService.httpGet("rfr-gql-client", "npm run dev", uri).check().responds(Duration.ofSeconds(2)),
+          "The check did not reach a server listening only on ::1");
+    } finally {
+      server.stop(0);
+    }
   }
 
   @Test
