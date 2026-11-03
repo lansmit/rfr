@@ -25,12 +25,22 @@ public class BrowserExtension implements BeforeEachCallback, AfterEachCallback, 
   @Override
   public void beforeEach(ExtensionContext context) {
     Playwright playwright = Playwright.create();
-    Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(TestConfig.headless()));
+    Browser browser = browserType(playwright).launch(new BrowserType.LaunchOptions().setHeadless(TestConfig.headless()));
     // rfr-auth localizes error messages by Accept-Language, which otherwise follows the OS locale
     BrowserContext browserContext = browser.newContext(new Browser.NewContextOptions().setLocale("en-US"));
     ExtensionContext.Store store = context.getStore(NAMESPACE);
     store.put(Playwright.class, playwright);
     store.put(Page.class, browserContext.newPage());
+  }
+
+  private static BrowserType browserType(Playwright playwright) {
+    return switch (TestConfig.browser()) {
+      case "chromium" -> playwright.chromium();
+      case "firefox" -> playwright.firefox();
+      case "webkit" -> playwright.webkit();
+      default -> throw new IllegalArgumentException(
+          "Unknown browser '" + TestConfig.browser() + "' in rfr.browser, use chromium, firefox or webkit");
+    };
   }
 
   @Override

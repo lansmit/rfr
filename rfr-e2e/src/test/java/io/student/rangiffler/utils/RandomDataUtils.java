@@ -11,7 +11,7 @@ public final class RandomDataUtils {
 
   /** rfr-auth allows usernames of 3..50 characters. */
   public static String randomUsername() {
-    return "e2e_" + randomString(10);
+    return "rfr_" + randomString(10);
   }
 
   /** rfr-auth allows passwords of 3..12 characters. */

@@ -27,7 +27,7 @@ public final class LoginPage {
     this.usernameInput = page.getByLabel("Username", new Page.GetByLabelOptions().setExact(true));
     this.passwordInput = page.getByLabel("Password", new Page.GetByLabelOptions().setExact(true));
     this.submitButton = page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Sign in").setExact(true));
-    this.errorMessage = page.locator(".form__alert");
+    this.errorMessage = page.locator(".form__error");
   }
 
   @Step("Fill login form: username={username}, password={password}")

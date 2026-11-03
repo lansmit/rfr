@@ -11,6 +11,7 @@ def aspectJVersion = '1.9.25.1'
 def junitVersion = '6.1.3'
 def playwrightVersion = '1.63.0'
 def springBootVersion = '4.1.1'
+def flywayVersion = rootProject.project(':rfr-api').flywayVersion
 
 configurations {
     agent {
@@ -34,6 +35,8 @@ dependencies {
     testImplementation "org.springframework.security:spring-security-crypto"
     testImplementation "tools.jackson.core:jackson-databind"
     testRuntimeOnly "com.mysql:mysql-connector-j"
+    testImplementation "org.flywaydb:flyway-core:$flywayVersion"
+    testRuntimeOnly "org.flywaydb:flyway-mysql:$flywayVersion"
 
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation "org.junit.platform:junit-platform-testkit"
@@ -65,13 +68,43 @@ tasks.register('installPlaywrightWithDeps', JavaExec) {
     args 'install', '--with-deps', 'chromium'
 }
 
+def commitHash = providers.exec {
+    commandLine 'git', 'rev-parse', '--short', 'HEAD'
+    ignoreExitValue = true
+}.standardOutput.asText.map { it.trim() ?: 'unknown' }.getOrElse('unknown')
+
+tasks.withType(Test).configureEach {
+    // results depend on the running stand, not only on the test code, so never reuse a previous run
+    outputs.upToDateWhen { false }
+    jvmArgumentProviders.add({ ["-javaagent:${configurations.agent.singleFile}"] } as CommandLineArgumentProvider)
+    systemProperty 'rfr.authMigrations', rootProject.file('rfr-auth/src/main/resources/db/migration/rangiffler-auth').absolutePath
+    systemProperty 'rfr.apiMigrations', rootProject.file('rfr-api/src/main/resources/db/migration/rangiffler-api').absolutePath
+    systemProperty 'rfr.commit', commitHash
+}
+
 test {
     useJUnitPlatform {
         excludeTags 'probe-target'
     }
-    // results depend on the running stand, not only on the test code, so never reuse a previous run
-    outputs.upToDateWhen { false }
-    jvmArgumentProviders.add({ ["-javaagent:${configurations.agent.singleFile}"] } as CommandLineArgumentProvider)
+    // an explicit --tests filter may pick a single UI test, so UI tests are excluded only without one
+    doFirst {
+        if (filter.commandLineIncludePatterns.empty) {
+            options { excludeTags 'ui' }
+        }
+    }
     // tests run in a forked JVM, so -Drfr.* given to Gradle has to be passed on explicitly
+    systemProperties System.getProperties().findAll { it.key.toString().startsWith('rfr.') }
+}
+
+tasks.register('e2e', Test) {
+    group = 'verification'
+    description = 'Runs UI tests against an already running stand (./gradlew runAll)'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'ui'
+        excludeTags 'probe-target'
+    }
+    systemProperty 'rfr.migrationCheck', 'true'
     systemProperties System.getProperties().findAll { it.key.toString().startsWith('rfr.') }
 }
