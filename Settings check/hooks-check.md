@@ -93,3 +93,29 @@ PreToolUse:Bash hook error: git push is denied for the agent: the user pushes.
 Второй вызов — проверка самого агента сразу после подключения хука: в команде был `git push`, и хук её не пропустил.
 
 Перед подключением хук прогнан на 29 командах, передавая ему тот же JSON, что и Claude Code: все 18 обходов заблокированы, 11 обычных команд (`git stash push -m wip`, `git commit -m 'fix push button'`, `git rm --cached x`, `git clean -n`, `find … -print`, `mv a a.bak` и др.) проходят.
+
+### Опции обёрток со значением *(ревью PR #2)*
+
+Хук пропускал после обёртки только токены на `-`, поэтому значение опции принимал за команду: в `sudo -u root rm f` командой считался `root`. Теперь у каждой обёртки есть список опций, которые берут следующий токен, а значение `env -S` разбирается как отдельная команда. Прогон 2026-11-07:
+
+| Команда | До исправления | После |
+|---|---|---|
+| `sudo -u root rm f`, `sudo --user root rm f` | пропускал | блокирует |
+| `env -u X rm f`, `env --unset X rm f` | пропускал | блокирует |
+| `env -S 'rm f'`, `env -S 'FOO=1 sudo -u root rm f'` | пропускал | блокирует |
+| `nice -n 5 rm f`, `nice --adjustment 5 rm f` | пропускал | блокирует |
+| `xargs -I {} rm {}`, `xargs --max-args 1 rm` | пропускал | блокирует |
+| `time -o out rm f`, `exec -a x rm f` | пропускал | блокирует |
+| `sudo -u root ls`, `env -u X mv a a.bak`, `env -S 'echo hi'`, `nice -n 5 ./gradlew build`, `xargs -I {} cat {}` | проходят | проходят |
+
+Вывод при реальных вызовах агента:
+
+```
+$ sudo -n -u root rm ./__nonexistent_check__.tmp
+PreToolUse:Bash hook error: Deleting files is denied in this project: rename to <name>.bak instead (mv file file.bak) and tell the user.
+```
+
+```
+$ env -S 'rm ./__nonexistent_check__.tmp'
+PreToolUse:Bash hook error: Deleting files is denied in this project: rename to <name>.bak instead (mv file file.bak) and tell the user.
+```
