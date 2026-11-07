@@ -51,11 +51,14 @@ tasks.register('runAll') {
     def launcher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
     def root = rootDir
     def logsDir = layout.buildDirectory.dir('logs')
+    def pidsDir = layout.buildDirectory.dir('stand')
     def front = file('rfr-gql-client')
 
     doLast {
         def logs = logsDir.get().asFile
+        def pids = pidsDir.get().asFile
         logs.mkdirs()
+        pids.mkdirs()
         // in CI MySQL comes from the job's services container, and compose would fail on the taken port
         if (isPortOpen(3306)) {
             logger.lifecycle('MySQL is already running on :3306')
@@ -69,29 +72,46 @@ tasks.register('runAll') {
         ['rfr-auth': 9001, 'rfr-api': 8081].each { name, port ->
             // skip the "-plain" jar the java plugin's jar task can leave next to the boot jar
             def jar = new File(root, "$name/build/libs").listFiles().find { it.name.endsWith('.jar') && !it.name.endsWith('-plain.jar') }
-            startInBackground(name, port, "'$java' -jar '$jar'", root, logs)
+            startInBackground(name, port, "'$java' -jar '$jar'", root, logs, pids)
         }
 
         if (!new File(front, 'node_modules').exists()) {
             sh(front, 'npm ci')
         }
-        startInBackground('rfr-gql-client', 3001, 'npm run dev', front, logs)
+        startInBackground('rfr-gql-client', 3001, 'npm run dev', front, logs, pids)
     }
 }
 
 tasks.register('stopAll') {
     group = 'stand'
-    description = 'Stops whatever listens on 3001/8081/9001 and the MySQL container (data stays in the volume)'
+    description = 'Stops the services started by runAll (by their PID files) and the MySQL container (data stays in the volume)'
     notCompatibleWithConfigurationCache('stops processes started outside Gradle')
     def root = rootDir
+    def pidsDir = layout.buildDirectory.dir('stand')
 
     doLast {
-        def ports = [3001, 8081, 9001]
-        ports.each { sh(root, "lsof -ti tcp:$it -sTCP:LISTEN | xargs kill 2>/dev/null; true") }
+        def stopped = []
+        pidsDir.get().asFile.listFiles({ it.name.endsWith('.pid') } as FileFilter)?.each { pidFile ->
+            def name = pidFile.name - '.pid'
+            def process = ownProcess(pidFile)
+            if (process) {
+                // npm runs vite as a child: killing only npm would leave vite holding :3001
+                process.descendants().forEach { it.destroy() }
+                process.destroy()
+                stopped << process
+                logger.lifecycle("Stopping $name (pid ${process.pid()})")
+            } else {
+                logger.lifecycle("$name is not running")
+            }
+            pidFile.delete()
+        }
         // let the apps close their DB connections before MySQL goes away
         def deadline = System.currentTimeMillis() + 30_000
-        while (ports.any { isPortOpen(it) } && System.currentTimeMillis() < deadline) {
+        while (stopped.any { it.isAlive() } && System.currentTimeMillis() < deadline) {
             sleep(500)
+        }
+        [3001, 8081, 9001].findAll { isPortOpen(it) }.each {
+            logger.warn("Port :$it is still taken by a process runAll didn't start; left running (bash ports.sh frees it)")
         }
         sh(root, 'docker compose down')
         logger.lifecycle('Stand stopped')
@@ -104,7 +124,7 @@ tasks.register('e2e') {
     dependsOn ':rfr-e2e:test'
 }
 
-void startInBackground(String name, int port, String command, File dir, File logs) {
+void startInBackground(String name, int port, String command, File dir, File logs, File pids) {
     if (isPortOpen(port)) {
         logger.lifecycle("$name is already running on :$port")
         return
@@ -112,6 +132,9 @@ void startInBackground(String name, int port, String command, File dir, File log
     def log = new File(logs, "${name}.log")
     // </dev/null and nohup detach the process from this build, so it outlives the Gradle task
     long pid = sh(dir, "nohup $command > '$log' 2>&1 < /dev/null & echo \$!").trim() as long
+    // the start time guards stopAll against a reused PID, e.g. after a reboot
+    def started = ProcessHandle.of(pid).flatMap { it.info().startInstant() }.map { it.toEpochMilli() }.orElse(0L)
+    new File(pids, "${name}.pid").text = "$pid $started"
     def deadline = System.currentTimeMillis() + 180_000
     while (!isPortOpen(port)) {
         if (!ProcessHandle.of(pid).map { it.isAlive() }.orElse(false)) {
@@ -123,6 +146,14 @@ void startInBackground(String name, int port, String command, File dir, File log
         sleep(1000)
     }
     logger.lifecycle("$name is up on :$port (log: ${rootDir.toPath().relativize(log.toPath())})")
+}
+
+ProcessHandle ownProcess(File pidFile) {
+    def (pid, started) = pidFile.text.trim().split(' ').collect { it as long }
+    ProcessHandle.of(pid)
+        .filter { it.isAlive() }
+        .filter { it.info().startInstant().map { it.toEpochMilli() == started }.orElse(false) }
+        .orElse(null)
 }
 
 // tries every address of localhost: vite listens only on ::1, the Spring apps on 0.0.0.0
