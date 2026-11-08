@@ -37,10 +37,8 @@ public final class SingleUserFixture implements UserFixture {
     if (account == null) {
       return;
     }
-    AuthAccount createdAccount = account;
-    Profile createdProfile = profile;
+    runAll(profile::delete, account::delete);
     account = null;
     profile = null;
-    runAll(createdProfile::delete, createdAccount::delete);
   }
 }
