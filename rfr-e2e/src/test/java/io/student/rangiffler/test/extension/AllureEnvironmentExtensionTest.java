@@ -93,6 +93,7 @@ class AllureEnvironmentExtensionTest {
   private static void run(Class<?> target) {
     EngineTestKit.engine("junit-jupiter")
         .configurationParameter(ProbeTargetCondition.RUN_PROBES, "true")
+        .configurationParameter("junit.jupiter.extensions.autodetection.enabled", "false")
         .selectors(selectClass(target))
         .execute();
   }

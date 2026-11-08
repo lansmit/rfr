@@ -31,6 +31,8 @@ class StandReadinessExtensionTest {
 
   private static final String SERVICE = "fake-service";
   private static final String BROKEN_CONFIG = "rfr.standTimeout must be a whole number of seconds, got 'abc'";
+  private static final String SLOW_SERVICE = "slow-service";
+  private static final AtomicInteger countedRequests = new AtomicInteger();
 
   private static volatile URI serviceUri;
 
@@ -55,6 +57,19 @@ class StandReadinessExtensionTest {
       assertTrue(failureMessages(results).stream().anyMatch(message -> message.contains(SERVICE)),
           "The failure does not name the service that did not respond: " + failureMessages(results));
     }
+  }
+
+  @Test
+  @DisplayName("Время вышло на первом сервисе — к следующему нет ни одного запроса")
+  void noRequestsAfterDeadline() {
+    countedRequests.set(0);
+
+    EngineExecutionResults results = run(SlowFirstTarget.class);
+
+    assertEquals(0, countedRequests.get(), "A service was polled after the deadline");
+    assertEquals(0L, results.testEvents().started().count(), "A test ran although the stand was not ready");
+    assertTrue(failureMessages(results).stream().anyMatch(message -> message.contains(SLOW_SERVICE)),
+        "The failure does not name the service that did not respond: " + failureMessages(results));
   }
 
   @Test
@@ -105,6 +120,7 @@ class StandReadinessExtensionTest {
   private static EngineExecutionResults run(Class<?> target) {
     return EngineTestKit.engine("junit-jupiter")
         .configurationParameter(ProbeTargetCondition.RUN_PROBES, "true")
+        .configurationParameter("junit.jupiter.extensions.autodetection.enabled", "false")
         .selectors(selectClass(target))
         .execute();
   }
@@ -119,6 +135,25 @@ class StandReadinessExtensionTest {
 
   private static StandService fakeService() {
     return StandService.httpGet(SERVICE, "start " + SERVICE, serviceUri);
+  }
+
+  private static StandService slowService() {
+    return new StandService(SLOW_SERVICE, "start " + SLOW_SERVICE, timeout -> {
+      try {
+        Thread.sleep(timeout);
+      }
+      catch (InterruptedException exception) {
+        Thread.currentThread().interrupt();
+      }
+      return false;
+    });
+  }
+
+  private static StandService countedService() {
+    return new StandService("counted-service", "start counted-service", timeout -> {
+      countedRequests.incrementAndGet();
+      return true;
+    });
   }
 
   static final class FakeService implements AutoCloseable {
@@ -164,6 +199,12 @@ class StandReadinessExtensionTest {
     }
   }
 
+  static final class SlowFirstStand extends StandReadinessExtension {
+    SlowFirstStand() {
+      super(() -> true, () -> Duration.ofSeconds(1), () -> List.of(slowService(), countedService()));
+    }
+  }
+
   static final class DisabledStand extends StandReadinessExtension {
     DisabledStand() {
       super(() -> false, () -> Duration.ofSeconds(10), () -> List.of(fakeService()));
@@ -191,6 +232,15 @@ class StandReadinessExtensionTest {
   @Tag("ui")
   @ExtendWith(ImpatientStand.class)
   static final class ImpatientTarget {
+    @Test
+    void runs() {
+    }
+  }
+
+  @ProbeTarget
+  @Tag("ui")
+  @ExtendWith(SlowFirstStand.class)
+  static final class SlowFirstTarget {
     @Test
     void runs() {
     }

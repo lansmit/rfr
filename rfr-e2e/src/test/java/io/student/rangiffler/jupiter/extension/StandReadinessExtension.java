@@ -5,7 +5,6 @@ import io.student.rangiffler.stand.StandService;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -46,14 +45,14 @@ public class StandReadinessExtension implements SuiteExtension {
   @Override
   public void beforeSuite(ExtensionContext context) {
     Duration timeout = this.timeout.get();
-    Instant deadline = Instant.now().plus(timeout);
+    long deadline = System.nanoTime() + timeout.toNanos();
     List<StandService> pending = new ArrayList<>(services.get());
     while (true) {
-      pending.removeIf(service -> service.check().responds(requestTimeout(deadline)));
+      pending.removeIf(service -> beforeDeadline(deadline) && service.check().responds(requestTimeout(deadline)));
       if (pending.isEmpty()) {
         return;
       }
-      Duration remaining = Duration.between(Instant.now(), deadline);
+      Duration remaining = Duration.ofNanos(deadline - System.nanoTime());
       if (remaining.isNegative() || remaining.isZero()) {
         throw new IllegalStateException(notReady(pending, timeout));
       }
@@ -61,8 +60,12 @@ public class StandReadinessExtension implements SuiteExtension {
     }
   }
 
-  private static Duration requestTimeout(Instant deadline) {
-    Duration remaining = Duration.between(Instant.now(), deadline);
+  private static boolean beforeDeadline(long deadline) {
+    return System.nanoTime() - deadline < 0;
+  }
+
+  private static Duration requestTimeout(long deadline) {
+    Duration remaining = Duration.ofNanos(deadline - System.nanoTime());
     if (remaining.compareTo(MIN_REQUEST_TIMEOUT) < 0) {
       return MIN_REQUEST_TIMEOUT;
     }
