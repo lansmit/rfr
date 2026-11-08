@@ -12,6 +12,7 @@ def junitVersion = '6.1.3'
 def playwrightVersion = '1.63.0'
 def springBootVersion = '4.1.1'
 def flywayVersion = rootProject.project(':rfr-api').flywayVersion
+def browser = System.getProperty('rfr.browser') ?: System.getenv('RFR_BROWSER') ?: 'chromium'
 
 configurations {
     agent {
@@ -54,18 +55,26 @@ allure {
 
 tasks.register('installPlaywright', JavaExec) {
     group = 'verification'
-    description = 'Downloads Chromium for the tests'
+    description = 'Downloads the browser from rfr.browser (chromium by default) for the tests'
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.microsoft.playwright.CLI'
-    args 'install', 'chromium'
+    args 'install', browser
 }
 
 tasks.register('installPlaywrightWithDeps', JavaExec) {
     group = 'verification'
-    description = 'Downloads Chromium together with the system libraries it needs on Linux (CI)'
+    description = 'Downloads the browser from rfr.browser together with the system libraries it needs on Linux (CI)'
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.microsoft.playwright.CLI'
-    args 'install', '--with-deps', 'chromium'
+    args 'install', '--with-deps', browser
+}
+
+tasks.register('showTrace', JavaExec) {
+    group = 'verification'
+    description = 'Opens a Playwright trace in Trace Viewer: -Ptrace=<path to trace.zip>'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.microsoft.playwright.CLI'
+    args 'show-trace', providers.gradleProperty('trace').getOrElse('')
 }
 
 def commitHash = providers.exec {

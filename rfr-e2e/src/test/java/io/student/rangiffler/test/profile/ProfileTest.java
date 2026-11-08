@@ -1,8 +1,8 @@
 package io.student.rangiffler.test.profile;
 
 import com.microsoft.playwright.Page;
+import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
-import io.student.rangiffler.jupiter.annotation.WebTest;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.page.ProfilePage;
@@ -13,7 +13,7 @@ import java.nio.file.Path;
 
 import static io.student.rangiffler.utils.ResourceUtils.classpathFile;
 
-@WebTest
+@UiTest
 @DisplayName("Profile")
 class ProfileTest {
 

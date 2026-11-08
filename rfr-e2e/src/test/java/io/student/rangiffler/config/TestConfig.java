@@ -1,5 +1,7 @@
 package io.student.rangiffler.config;
 
+import com.microsoft.playwright.junit.Options;
+
 import java.time.Duration;
 import java.util.Locale;
 
@@ -10,6 +12,10 @@ public final class TestConfig {
   private static final String DEFAULT_API_URL = "http://localhost:8081";
   private static final int DEFAULT_STAND_TIMEOUT_SECONDS = 180;
   private static final boolean DEFAULT_HEADLESS = true;
+  private static final int DEFAULT_VIEWPORT_WIDTH = 1920;
+  private static final int DEFAULT_VIEWPORT_HEIGHT = 1080;
+  private static final int DEFAULT_ACTION_TIMEOUT_SECONDS = 5;
+  private static final int DEFAULT_NAVIGATION_TIMEOUT_SECONDS = 30;
   private static final String DEFAULT_AUTH_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC";
   private static final String DEFAULT_API_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC";
   private static final String DEFAULT_DB_USERNAME = "root";
@@ -42,6 +48,26 @@ public final class TestConfig {
 
   public static boolean headless() {
     return Boolean.parseBoolean(get("headless", String.valueOf(DEFAULT_HEADLESS)));
+  }
+
+  public static int viewportWidth() {
+    return Integer.parseInt(get("viewportWidth",String.valueOf(DEFAULT_VIEWPORT_WIDTH)));
+  }
+
+  public static int viewportHeight() {
+    return Integer.parseInt(get("viewportHeight",String.valueOf(DEFAULT_VIEWPORT_HEIGHT)));
+  }
+
+  public static Options.Trace trace() {
+    return Options.Trace.valueOf(get("trace", "off").toUpperCase(Locale.ROOT).replace('-', '_'));
+  }
+
+  public static Duration actionTimeout() {
+    return Duration.ofSeconds(Long.parseLong(get("actionTimeout", String.valueOf(DEFAULT_ACTION_TIMEOUT_SECONDS))));
+  }
+
+  public static Duration navigationTimeout() {
+    return Duration.ofSeconds(Long.parseLong(get("navigationTimeout", String.valueOf(DEFAULT_NAVIGATION_TIMEOUT_SECONDS))));
   }
 
   public static String authJdbcUrl() {

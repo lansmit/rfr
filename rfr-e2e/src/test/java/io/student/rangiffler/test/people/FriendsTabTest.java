@@ -2,11 +2,13 @@ package io.student.rangiffler.test.people;
 
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Route;
+import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
-import io.student.rangiffler.jupiter.annotation.WebTest;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
+import io.student.rangiffler.page.PeopleTab;
 import io.student.rangiffler.page.PeoplePage;
+import io.student.rangiffler.page.component.PeopleTable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,15 +16,17 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@WebTest
+@UiTest
 @DisplayName("People: Friends tab")
 class FriendsTabTest {
 
   @Test
   @DisplayName("Friends tab shows only friends with Remove button")
   void friendsTabShouldShowOnlyFriends(Page page, @User(friends = 1, incomeInvitations = 1) TestUser user) {
-    login(page, user)
-        .checkFriends(usernames(user.friends()));
+    PeopleTable table = login(page, user).table();
+    List<String> friends = usernames(user.friends());
+    table.checkUsernames(friends);
+    friends.forEach(friend -> table.row(friend).checkFriend());
   }
 
   @Test
@@ -35,9 +39,12 @@ class FriendsTabTest {
   @Test
   @DisplayName("Opening the already selected Friends tab keeps showing friends")
   void openingSelectedFriendsTabShouldKeepFriends(Page page, @User(friends = 1) TestUser user) {
-    login(page, user)
-        .openFriendsTab()
-        .checkFriends(usernames(user.friends()));
+    PeopleTable table = login(page, user)
+        .openTab(PeopleTab.FRIENDS)
+        .table();
+    List<String> friends = usernames(user.friends());
+    table.checkUsernames(friends);
+    friends.forEach(friend -> table.row(friend).checkFriend());
   }
 
   @Test
