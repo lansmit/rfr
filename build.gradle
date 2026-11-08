@@ -98,12 +98,6 @@ tasks.register('stopAll') {
     }
 }
 
-tasks.register('e2e') {
-    group = 'verification'
-    description = 'Runs all rfr-e2e tests against an already running stand (./gradlew runAll)'
-    dependsOn ':rfr-e2e:test'
-}
-
 void startInBackground(String name, int port, String command, File dir, File logs) {
     if (isPortOpen(port)) {
         logger.lifecycle("$name is already running on :$port")
