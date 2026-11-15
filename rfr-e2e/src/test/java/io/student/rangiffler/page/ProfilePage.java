@@ -7,6 +7,8 @@ import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
 import io.student.rangiffler.network.AppResponses;
 import io.student.rangiffler.page.component.Header;
+import io.student.rangiffler.page.component.Notification;
+import io.student.rangiffler.page.component.Snackbar;
 
 import java.nio.file.Path;
 
@@ -29,7 +31,7 @@ public final class ProfilePage {
   private final Locator locationSelect;
   private final Locator resetButton;
   private final Locator saveButton;
-  private final Locator snackbar;
+  private final Snackbar snackbar;
 
   public ProfilePage(Page page) {
     this.page = page;
@@ -47,7 +49,7 @@ public final class ProfilePage {
     this.locationSelect = page.getByRole(AriaRole.COMBOBOX, new Page.GetByRoleOptions().setName("Location").setExact(true));
     this.resetButton = page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Reset").setExact(true));
     this.saveButton = page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Save").setExact(true));
-    this.snackbar = page.getByRole(AriaRole.ALERT);
+    this.snackbar = new Snackbar(page);
   }
 
   public Header header() {
@@ -145,7 +147,7 @@ public final class ProfilePage {
 
   @Step("Check that profile is saved")
   public ProfilePage checkProfileSaved() {
-    assertThat(snackbar).hasText("Your profile is successfully updated");
+    snackbar.checkShown(Notification.PROFILE_UPDATED);
     return this;
   }
 

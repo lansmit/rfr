@@ -5,6 +5,7 @@ import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.page.PeoplePage;
 import io.student.rangiffler.page.PeopleTab;
+import io.student.rangiffler.page.component.Notification;
 import io.student.rangiffler.session.UserSession;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,12 +22,11 @@ class InvitationBetweenSessionsTest {
     String inviterName = inviter.user().username();
     String inviteeName = invitee.user().username();
 
-    PeoplePage.open(inviter.page())
+    PeoplePage people = PeoplePage.open(inviter.page())
         .openTab(PeopleTab.ALL_PEOPLE)
-        .searchPeople(inviteeName)
-        .table()
-        .row(inviteeName)
-        .sendInvitation();
+        .searchPeople(inviteeName);
+    people.table().row(inviteeName).clickAdd();
+    people.checkNotification(Notification.INVITATION_SENT);
 
     PeoplePage.open(invitee.page())
         .openTab(PeopleTab.INCOME_INVITATIONS)

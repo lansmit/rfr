@@ -16,10 +16,6 @@ public final class AppResponses {
     return GraphQl.operation("UpdateUser");
   }
 
-  public static Predicate<Response> friendshipChanged() {
-    return GraphQl.operation("FriendshipAction");
-  }
-
   public static Predicate<Response> friendsLoaded() {
     return GraphQl.operation("GetFriends");
   }

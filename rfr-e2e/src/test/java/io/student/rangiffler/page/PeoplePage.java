@@ -8,7 +8,9 @@ import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
 import io.student.rangiffler.network.AppResponses;
 import io.student.rangiffler.page.component.Header;
+import io.student.rangiffler.page.component.Notification;
 import io.student.rangiffler.page.component.PeopleTable;
+import io.student.rangiffler.page.component.Snackbar;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -19,6 +21,7 @@ public final class PeoplePage {
   private final Page page;
   private final Header header;
   private final PeopleTable table;
+  private final Snackbar snackbar;
   private final Locator searchInput;
   private final Locator searchButton;
   private Response peopleResponse;
@@ -27,6 +30,7 @@ public final class PeoplePage {
     this.page = page;
     this.header = new Header(page);
     this.table = new PeopleTable(page);
+    this.snackbar = new Snackbar(page);
 
     Locator main = page.getByRole(AriaRole.MAIN);
 
@@ -44,8 +48,13 @@ public final class PeoplePage {
 
   @Step("Open people page")
   public static PeoplePage open(Page page) {
+    return openedBy(page, () -> page.navigate(URL));
+  }
+
+  // the page opens on the Friends tab: its list is the response checkNoPeople() reads
+  static PeoplePage openedBy(Page page, Runnable navigation) {
     PeoplePage peoplePage = new PeoplePage(page);
-    peoplePage.peopleResponse = page.waitForResponse(AppResponses.friendsLoaded(), () -> page.navigate(URL));
+    peoplePage.peopleResponse = page.waitForResponse(AppResponses.friendsLoaded(), navigation);
     return peoplePage;
   }
 
@@ -69,6 +78,12 @@ public final class PeoplePage {
   public PeoplePage searchPeople(String query) {
     searchInput.fill(query);
     searchButton.click();
+    return this;
+  }
+
+  @Step("Check notification on People page: {notification.text}")
+  public PeoplePage checkNotification(Notification notification) {
+    snackbar.checkShown(notification);
     return this;
   }
 

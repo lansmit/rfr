@@ -28,6 +28,7 @@ public final class MyTravelsPage {
   private final Locator countriesList;
   private final Locator resetCountryFilterButton;
   private final Locator photoCards;
+  private final Locator peopleLink;
 
   public MyTravelsPage(Page page) {
     this.page = page;
@@ -45,6 +46,7 @@ public final class MyTravelsPage {
     this.countriesList = page.getByRole(AriaRole.TOOLTIP);
     this.resetCountryFilterButton = main.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Reset country filter").setExact(true));
     this.photoCards = main.getByRole(AriaRole.ARTICLE);
+    this.peopleLink = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("People").setExact(true));
   }
 
   public Header header() {
@@ -59,6 +61,11 @@ public final class MyTravelsPage {
   public static MyTravelsPage open(Page page) {
     page.navigate(URL);
     return new MyTravelsPage(page);
+  }
+
+  @Step("Go to People")
+  public PeoplePage clickPeople() {
+    return PeoplePage.openedBy(page, peopleLink::click);
   }
 
   @Step("Show travels with friends")
