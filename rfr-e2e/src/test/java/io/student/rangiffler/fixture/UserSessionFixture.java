@@ -8,19 +8,19 @@ import io.student.rangiffler.session.UserSession;
 
 import java.nio.file.Path;
 
+// The user belongs to UserExtension: this fixture owns only the browser context and never deletes the user.
 public final class UserSessionFixture implements SessionFixture<UserSession> {
 
   private final SessionContext context;
-  private final UserFixture delegate;
+  private final TestUser user;
 
-  public UserSessionFixture(Browser browser, UserFixture delegate) {
+  public UserSessionFixture(Browser browser, TestUser user) {
     this.context = new SessionContext(browser);
-    this.delegate = delegate;
+    this.user = user;
   }
 
   @Override
   public UserSession create() {
-    TestUser user = delegate.create();
     Page page = context.open();
     // waits for the redirect after login, otherwise mainPage() would hand out a page that is still logging in
     LandingPage.open(page)
@@ -44,6 +44,6 @@ public final class UserSessionFixture implements SessionFixture<UserSession> {
 
   @Override
   public void close() {
-    Cleanup.runAll(context::close, delegate::close);
+    context.close();
   }
 }
