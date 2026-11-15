@@ -19,11 +19,11 @@
 
 ## Writing tests
 - Annotate UI test classes with `@UiTest` and take `Page` as a test parameter; don't create Playwright yourself. Put context settings into `config/BrowserSettings` (used by `@UsePlaywright` and by `@Session` contexts alike), and keep the locale `en-US` there: rfr-auth localizes messages by `Accept-Language`.
-- Take a second (third, …) browser as a `@Session @User UserSession` (logged in, `mainPage()`) or `@Session GuestSession` (landing page) parameter; each gets its own context, closed after the test.
+- Take a second (third, …) browser as a `@Session @User UserSession` (logged in, `mainPage()`) or `@Session GuestSession` (landing page) parameter; each gets its own context, closed after the test. A user related to the session's user (`alice.user().friends()`, `outcomeInvitations()`) logs into the main `Page` through `test/people/PeopleLogin`.
 - Get users from a `@User TestUser` parameter. Don't create them through the UI unless registration is under test; cleanup in both DBs is automatic.
 - Log in only through the UI; never put tokens into localStorage.
 - Create and delete test data only through fixtures; never use broad `DELETE`/`TRUNCATE`: other tests' data lives in the same DBs.
 - Read stand settings only through `TestConfig`; override with `-Drfr.<key>` or `RFR_<KEY>`.
 - Put all SQL for test data into immutable records in `data/db` (`AuthAccount`, `Profile`, `Friendship`, `Friendships`) with `create()` / `delete()` / `exists()`; fixtures call only these records.
 - When a new table references users, add its delete script to `Profile`'s `DELETE_CHILDREN_SQL`: the schema has no cascading foreign keys.
-- Test extensions with EngineTestKit: put the probe classes it runs inside the test class as `static` nested classes annotated `@ProbeTarget` (skipped unless the outer test's `run()` sets `ProbeTargetCondition.RUN_PROBES`; Gradle also excludes its tag), report facts with `TestReporter`, and check the DB in the outer test after the probe's store has closed.
+- Test extensions with EngineTestKit: put the probe classes it runs inside the test class as `static` nested classes annotated `@ProbeTarget` (UI targets with `@UiTest` go top-level in the same file: Playwright reads `@UsePlaywright` from the outermost class only) (skipped unless the outer test's `run()` sets `ProbeTargetCondition.RUN_PROBES`; Gradle also excludes its tag), report facts with `TestReporter`, and check the DB in the outer test after the probe's store has closed.
