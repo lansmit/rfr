@@ -5,9 +5,13 @@ import com.microsoft.playwright.impl.junit.BrowserExtension;
 import com.microsoft.playwright.junit.UsePlaywright;
 import io.student.rangiffler.fixture.GuestSessionFixture;
 import io.student.rangiffler.fixture.SessionFixture;
+import io.student.rangiffler.fixture.UserSessionFixture;
 import io.student.rangiffler.jupiter.annotation.Session;
 import io.student.rangiffler.jupiter.annotation.User;
+import io.student.rangiffler.model.UserRequest;
 import io.student.rangiffler.session.GuestSession;
+import io.student.rangiffler.session.UserSession;
+import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
@@ -21,8 +25,9 @@ public class SessionExtension implements ParameterResolver {
 
   @Override
   public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+    Class<?> type = parameterContext.getParameter().getType();
     return parameterContext.isAnnotated(Session.class)
-        && parameterContext.getParameter().getType() == GuestSession.class
+        && (type == UserSession.class || type == GuestSession.class)
         && extensionContext.getTestMethod().filter(parameterContext.getDeclaringExecutable()::equals).isPresent();
   }
 
@@ -31,12 +36,21 @@ public class SessionExtension implements ParameterResolver {
     if (!AnnotationSupport.isAnnotated(extensionContext.getRequiredTestClass(), UsePlaywright.class)) {
       throw new ParameterResolutionException("@Session needs a browser: annotate the test class with @UiTest");
     }
-    if (parameterContext.isAnnotated(User.class)) {
-      throw new ParameterResolutionException("GuestSession has no user: remove @User or take a UserSession");
-    }
-    Browser browser = BrowserExtension.getOrCreateBrowser(extensionContext);
-    SessionFixture<?> fixture = new GuestSessionFixture(browser);
+    SessionFixture<?> fixture = fixture(parameterContext, BrowserExtension.getOrCreateBrowser(extensionContext));
     extensionContext.getStore(NAMESPACE).put(parameterContext.getIndex(), fixture);
     return fixture.create();
+  }
+
+  private static SessionFixture<?> fixture(ParameterContext parameterContext, Browser browser) {
+    Optional<User> user = parameterContext.findAnnotation(User.class);
+    if (parameterContext.getParameter().getType() == UserSession.class) {
+      User annotation = user.orElseThrow(() -> new ParameterResolutionException(
+          "UserSession needs a user: add @User or take a GuestSession"));
+      return new UserSessionFixture(browser, UserRequest.from(annotation).fixture());
+    }
+    if (user.isPresent()) {
+      throw new ParameterResolutionException("GuestSession has no user: remove @User or take a UserSession");
+    }
+    return new GuestSessionFixture(browser);
   }
 }
