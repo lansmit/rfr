@@ -62,7 +62,7 @@ public final class PeoplePage {
   // a click on the already selected tab doesn't remount the table, so no request would come
   @Step("Open '{tab.title}' tab")
   public PeoplePage openTab(PeopleTab tab) {
-    Locator tabLocator = page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title()).setExact(true));
+    Locator tabLocator = page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title() + " broken").setExact(true));
     if (!"true".equals(tabLocator.getAttribute("aria-selected"))) {
       peopleResponse = page.waitForResponse(response -> GraphQl.isOperationResponse(response, tab.operationName()), tabLocator::click);
     }
