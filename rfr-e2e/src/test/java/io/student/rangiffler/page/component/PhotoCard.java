@@ -24,4 +24,12 @@ public final class PhotoCard {
     assertThat(likeButton).isVisible();
     return this;
   }
+
+  @Step("Check that photo '{this.description}' has like button but no actions")
+  public PhotoCard checkNoPhotoActions() {
+    // the like button proves the card is found, otherwise the missing actions button would pass for a missing card
+    assertThat(likeButton).isVisible();
+    assertThat(actionsButton).hasCount(0);
+    return this;
+  }
 }

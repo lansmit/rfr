@@ -22,6 +22,7 @@ public final class TestConfig {
   private static final String DEFAULT_DB_PASSWORD = "secret";
   private static final String DEFAULT_AUTH_MIGRATIONS = "../rfr-auth/src/main/resources/db/migration/rangiffler-auth";
   private static final String DEFAULT_API_MIGRATIONS = "../rfr-api/src/main/resources/db/migration/rangiffler-api";
+  private static final String DEFAULT_FEED_MOCKS = "../rfr-api/src/main/resources/mock";
 
   private TestConfig() {
   }
@@ -109,6 +110,10 @@ public final class TestConfig {
 
   public static String apiMigrations() {
     return get("apiMigrations", DEFAULT_API_MIGRATIONS);
+  }
+
+  public static String feedMocks() {
+    return get("feedMocks", DEFAULT_FEED_MOCKS);
   }
 
   private static String get(String key, String defaultValue) {
