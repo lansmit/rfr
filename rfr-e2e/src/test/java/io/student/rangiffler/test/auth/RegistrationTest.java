@@ -1,14 +1,14 @@
 package io.student.rangiffler.test.auth;
 
 import com.microsoft.playwright.Page;
+import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.UserToRegister;
-import io.student.rangiffler.jupiter.annotation.WebTest;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-@WebTest
+@UiTest
 @DisplayName("Registration")
 class RegistrationTest {
 
