@@ -47,8 +47,8 @@ public final class UserWithRelationsFixture implements UserFixture {
     friendships.forEach(friendship -> cleanups.add(friendship::delete));
     partnerFixtures.forEach(fixture -> cleanups.add(fixture::close));
     cleanups.add(delegate::close);
+    runAll(cleanups);
     friendships.clear();
     partnerFixtures.clear();
-    runAll(cleanups);
   }
 }

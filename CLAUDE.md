@@ -22,7 +22,7 @@ Stack: Java 25 (Gradle toolchain), Gradle 9.7.1 wrapper, Spring Boot 4.1.1 (BOM 
 ```bash
 # whole stand in the background (MySQL → auth → api → frontend), returns when all are up; logs in build/logs/
 ./gradlew runAll
-# stop it all (MySQL via docker compose down, data kept)
+# stop what runAll started (PIDs in build/stand/) + MySQL via docker compose down, data kept; leaves services started elsewhere running
 ./gradlew stopAll
 
 # MySQL via docker-compose.yml (root/secret, :3306), returns once the DB is healthy
