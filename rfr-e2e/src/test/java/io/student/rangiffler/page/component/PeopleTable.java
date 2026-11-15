@@ -44,6 +44,6 @@ public final class PeopleTable {
 
   private Locator rowLocator(String username) {
     return rows.filter(new Locator.FilterOptions().setHas(
-        page.getByRole(AriaRole.CELL, new Page.GetByRoleOptions().setName(username).setExact(true))));
+        page.getByText(username, new Page.GetByTextOptions().setExact(true))));
   }
 }
