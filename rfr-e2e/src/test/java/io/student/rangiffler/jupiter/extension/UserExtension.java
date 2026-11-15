@@ -3,12 +3,10 @@ package io.student.rangiffler.jupiter.extension;
 import io.student.rangiffler.fixture.UserFixture;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
+import io.student.rangiffler.model.UserRequest;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
-
-import static io.student.rangiffler.utils.RandomDataUtils.randomPassword;
-import static io.student.rangiffler.utils.RandomDataUtils.randomUsername;
 
 public class UserExtension implements ParameterResolver {
 
@@ -22,10 +20,7 @@ public class UserExtension implements ParameterResolver {
 
   @Override
   public TestUser resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-    User annotation = parameterContext.findAnnotation(User.class).orElseThrow();
-    UserFixture fixture = new UserFixture(
-        annotation.username().isEmpty() ? randomUsername() : annotation.username(),
-        annotation.password().isEmpty() ? randomPassword() : annotation.password());
+    UserFixture fixture = UserRequest.from(parameterContext.findAnnotation(User.class).orElseThrow()).fixture();
     // JUnit closes AutoCloseable store values when the test method's context ends, i.e. after the test
     extensionContext.getStore(NAMESPACE).put(parameterContext.getIndex(), fixture);
     return fixture.create();
