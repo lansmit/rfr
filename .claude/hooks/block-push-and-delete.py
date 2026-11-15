@@ -11,6 +11,20 @@ import sys
 
 SEPARATORS = {";", "&", "&&", "|", "||", "\n", "(", ")"}
 WRAPPERS = {"sudo", "env", "command", "exec", "nohup", "time", "nice", "builtin", "xargs"}
+# wrapper options that take the next token as their value: without them `sudo -u root rm` looks like the command `root`
+WRAPPER_OPTS_WITH_ARG = {
+    "sudo": {"-u", "-g", "-h", "-p", "-C", "-D", "-r", "-t", "-U", "-T",
+             "--user", "--group", "--host", "--prompt", "--close-from", "--chdir", "--chroot",
+             "--role", "--type", "--other-user", "--command-timeout"},
+    "env": {"-u", "-C", "-P", "--unset", "--chdir"},
+    "nice": {"-n", "--adjustment"},
+    "time": {"-o", "-f", "--output", "--format"},
+    "exec": {"-a"},
+    "xargs": {"-I", "-J", "-L", "-n", "-P", "-s", "-E", "-d", "-a", "-R", "-S",
+              "--max-args", "--max-procs", "--max-chars", "--delimiter", "--arg-file", "--process-slot-var"},
+}
+# env -S splits its value into words and runs them, so the value is a command line of its own
+SPLIT_STRING_OPTS = {"-S", "--split-string"}
 SHELLS = {"sh", "bash", "zsh", "dash"}
 DELETERS = {"rm", "unlink", "rmdir", "shred"}
 # git global options that take the next token as their value
@@ -41,6 +55,18 @@ def segments(tokens):
         yield current
 
 
+def split_string_value(argv, i):
+    """Value of env's -S at argv[i] and how many tokens it took, or None if argv[i] isn't -S."""
+    tok = argv[i]
+    if tok in SPLIT_STRING_OPTS:
+        return (argv[i + 1], 2) if i + 1 < len(argv) else ("", 1)
+    if tok.startswith("--split-string="):
+        return tok.partition("=")[2], 1
+    if tok.startswith("-S"):
+        return tok[2:], 1
+    return None
+
+
 def strip_prefix(argv):
     i = 0
     while i < len(argv):
@@ -48,9 +74,16 @@ def strip_prefix(argv):
         if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", tok):
             i += 1
         elif os.path.basename(tok) in WRAPPERS:
+            wrapper = os.path.basename(tok)
+            opts_with_arg = WRAPPER_OPTS_WITH_ARG.get(wrapper, set())
             i += 1
             while i < len(argv) and (argv[i].startswith("-") or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", argv[i])):
-                i += 1
+                if wrapper == "env":
+                    split = split_string_value(argv, i)
+                    if split:
+                        value, consumed = split
+                        return strip_prefix(tokenize(value) + argv[i + consumed:])
+                i += 2 if argv[i] in opts_with_arg else 1
         else:
             break
     return argv[i:]
