@@ -1,6 +1,7 @@
 package io.student.rangiffler.page.component;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 
@@ -15,7 +16,7 @@ public final class PhotoCard {
   public PhotoCard(Locator self, String description) {
     this.description = description;
     this.actionsButton = self.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Photo actions").setExact(true));
-    this.likeButton = self.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("like").setExact(true));
+    this.likeButton = self.page().getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("like").setExact(true));
   }
 
   @Step("Check that photo '{this.description}' has actions and like buttons")
