@@ -2,10 +2,10 @@ package io.student.rangiffler.page;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Response;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
+import io.student.rangiffler.network.AppResponses;
 import io.student.rangiffler.page.component.Header;
 
 import java.nio.file.Path;
@@ -99,7 +99,7 @@ public final class ProfilePage {
   // without waiting, a navigation right after Save may abort the mutation still in flight
   @Step("Save profile")
   public ProfilePage saveProfile() {
-    page.waitForResponse(ProfilePage::isUpdateUserResponse, saveButton::click);
+    page.waitForResponse(AppResponses.profileSaved(), saveButton::click);
     return this;
   }
 
@@ -159,10 +159,5 @@ public final class ProfilePage {
   public ProfilePage checkSurnameError(String message) {
     assertThat(surnameError).hasText(message);
     return this;
-  }
-
-  private static boolean isUpdateUserResponse(Response response) {
-    String body = response.request().postData();
-    return response.url().endsWith("/graphql") && body != null && body.contains("\"operationName\":\"UpdateUser\"");
   }
 }

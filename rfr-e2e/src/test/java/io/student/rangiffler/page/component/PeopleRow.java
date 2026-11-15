@@ -3,7 +3,7 @@ package io.student.rangiffler.page.component;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
-import io.student.rangiffler.page.GraphQl;
+import io.student.rangiffler.network.AppResponses;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -25,7 +25,7 @@ public final class PeopleRow {
 
   @Step("Send invitation to {this.username}")
   public PeopleRow sendInvitation() {
-    self.page().waitForResponse(response -> GraphQl.isOperationResponse(response, "FriendshipAction"), addButton::click);
+    self.page().waitForResponse(AppResponses.friendshipChanged(), addButton::click);
     return this;
   }
 
