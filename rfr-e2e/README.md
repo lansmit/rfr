@@ -32,11 +32,11 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 ./gradlew :rfr-e2e:test --tests 'io.student.rangiffler.test.profile.ProfileTest'   # один класс
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'         # один тест
 ./gradlew e2e -Drfr.headless=false                                         # с видимым браузером
-./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on              # записать Playwright trace (on | retain-on-failure | off)
+./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on              # сохранить Playwright trace и у зелёного теста
 ./gradlew :rfr-e2e:showTrace -Ptrace=<путь к trace.zip>                    # открыть trace в Trace Viewer
 ```
 
-Trace пишется в `rfr-e2e/build/playwright/<класс>.<метод>-<браузер>/trace.zip`. Упавший тест перезапускают с `-Drfr.trace=on`; при прогоне всего набора удобнее `retain-on-failure` — сохраняются только trace упавших тестов. Zip можно открыть и на trace.playwright.dev: файл читается в браузере и никуда не загружается.
+Trace (скриншоты, DOM-снимки, исходники) пишется для каждого UI-теста, а сохраняется только у упавших: в `rfr-e2e/build/playwright/<класс>.<метод>-<браузер>/trace.zip` и вложением `trace.zip` в отчёт Allure (`TraceExtension`). С `-Drfr.trace=on` сохраняется и у зелёных. Zip можно открыть и на trace.playwright.dev: файл читается в браузере и никуда не загружается.
 
 ## Отчёт Allure
 
@@ -115,7 +115,7 @@ class ProfileTest {
 }
 ```
 
-- `@UiTest` на классе: `@Tag("ui")` и `@UsePlaywright(BrowserOptions.class)`, `BrowserTimeoutsExtension` и `@Timeout(30)`. Таймауты Playwright: действия 5 с (`rfr.actionTimeout`), навигация 30 с (`rfr.navigationTimeout`); тест целиком — не дольше 30 с. Браузер запускается один раз на поток, перед каждым тестом создаётся новый контекст и `Page` (локаль `en-US`, окно 1920×1080, `data-test-id` для `getByTestId`) и передаётся в тест.
+- `@UiTest` на классе: `@Tag("ui")` и `@UsePlaywright(BrowserOptions.class)`, `BrowserTimeoutsExtension`, `TraceExtension` и `@Timeout(30)`. Таймауты Playwright: действия 5 с (`rfr.actionTimeout`), навигация 30 с (`rfr.navigationTimeout`); тест целиком — не дольше 30 с. Браузер запускается один раз на поток, перед каждым тестом создаётся новый контекст и `Page` (локаль `en-US`, окно 1920×1080, `data-test-id` для `getByTestId`) и передаётся в тест.
 - `@User` на параметре: перед тестом в `rangiffler-auth` создаётся пользователь со случайными именем и паролем (`@User(password = "...")` задаёт пароль явно). После теста он удаляется из обеих БД вместе со всеми своими данными. Профиль в `rangiffler-api` появляется при первом входе.
 - Тест — цепочка действий и проверок через Page Object. Правила написания Page Object: [`.claude/skills/rfr-page-objects/SKILL.md`](../.claude/skills/rfr-page-objects/SKILL.md).
 

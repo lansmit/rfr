@@ -4,11 +4,11 @@
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'   # one test
 ./gradlew e2e -Drfr.headless=false                                   # visible browser
 ./gradlew :rfr-e2e:allureServe                                       # Allure report
-./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on       # Playwright trace → build/playwright/<class>.<method>-<browser>/trace.zip
+./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on       # keep the trace of a passed test too → build/playwright/<class>.<method>-<browser>/trace.zip
 ./gradlew :rfr-e2e:showTrace -Ptrace=<abs path to trace.zip>         # Trace Viewer
 ```
 
-- To debug a failing UI test, rerun just that test with `-Drfr.trace=on` and read its trace; use `retain-on-failure` for a whole run.
+- To debug a failing UI test, read its trace: `TraceExtension` saves it for every failed UI test (also attached to Allure). Pass `-Drfr.trace=on` only to keep traces of passed tests.
 
 ## Running
 - Expect `./gradlew e2e` to run only UI tests (`@UiTest` carries `@Tag("ui")`) and `:rfr-e2e:test` everything else; `:rfr-e2e:test --tests` with an explicit filter runs UI tests too.

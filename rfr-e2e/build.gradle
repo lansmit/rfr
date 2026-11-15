@@ -90,6 +90,8 @@ tasks.withType(Test).configureEach {
     systemProperty 'rfr.apiMigrations', rootProject.file('rfr-api/src/main/resources/db/migration/rangiffler-api').absolutePath
     systemProperty 'rfr.feedMocks', rootProject.file('rfr-api/src/main/resources/mock').absolutePath
     systemProperty 'rfr.commit', commitHash
+    // TraceExtension records sources: Playwright looks for them only in these directories
+    environment 'PLAYWRIGHT_JAVA_SRC', file('src/test/java').absolutePath
 }
 
 test {

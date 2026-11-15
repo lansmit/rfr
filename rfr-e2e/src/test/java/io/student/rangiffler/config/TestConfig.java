@@ -1,7 +1,5 @@
 package io.student.rangiffler.config;
 
-import com.microsoft.playwright.junit.Options;
-
 import java.time.Duration;
 import java.util.Locale;
 
@@ -59,8 +57,8 @@ public final class TestConfig {
     return Integer.parseInt(get("viewportHeight",String.valueOf(DEFAULT_VIEWPORT_HEIGHT)));
   }
 
-  public static Options.Trace trace() {
-    return Options.Trace.valueOf(get("trace", "off").toUpperCase(Locale.ROOT).replace('-', '_'));
+  public static boolean traceAll() {
+    return "on".equalsIgnoreCase(get("trace", "off"));
   }
 
   public static Duration actionTimeout() {
