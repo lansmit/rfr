@@ -1,16 +1,21 @@
 package io.student.rangiffler.config;
 
+import java.time.Duration;
 import java.util.Locale;
 
 public final class TestConfig {
 
   private static final String DEFAULT_FRONT_URL = "http://localhost:3001";
   private static final String DEFAULT_AUTH_URL = "http://localhost:9001";
+  private static final String DEFAULT_API_URL = "http://localhost:8081";
+  private static final int DEFAULT_STAND_TIMEOUT_SECONDS = 180;
   private static final boolean DEFAULT_HEADLESS = true;
   private static final String DEFAULT_AUTH_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC";
   private static final String DEFAULT_API_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC";
   private static final String DEFAULT_DB_USERNAME = "root";
   private static final String DEFAULT_DB_PASSWORD = "secret";
+  private static final String DEFAULT_AUTH_MIGRATIONS = "../rfr-auth/src/main/resources/db/migration/rangiffler-auth";
+  private static final String DEFAULT_API_MIGRATIONS = "../rfr-api/src/main/resources/db/migration/rangiffler-api";
 
   private TestConfig() {
   }
@@ -21,6 +26,18 @@ public final class TestConfig {
 
   public static String authUrl() {
     return get("auth.url", DEFAULT_AUTH_URL);
+  }
+
+  public static String apiUrl() {
+    return get("api.url", DEFAULT_API_URL);
+  }
+
+  public static String browser() {
+    return get("browser", "chromium");
+  }
+
+  public static String commit() {
+    return get("commit", "unknown");
   }
 
   public static boolean headless() {
@@ -41,6 +58,31 @@ public final class TestConfig {
 
   public static String dbPassword() {
     return get("db.password", DEFAULT_DB_PASSWORD);
+  }
+
+  public static boolean standCheck() {
+    return Boolean.parseBoolean(get("standCheck", "true"));
+  }
+
+  public static Duration standTimeout() {
+    String value = get("standTimeout", String.valueOf(DEFAULT_STAND_TIMEOUT_SECONDS));
+    try {
+      return Duration.ofSeconds(Long.parseLong(value));
+    } catch (NumberFormatException exception) {
+      throw new IllegalArgumentException("rfr.standTimeout must be a whole number of seconds, got '" + value + "'", exception);
+    }
+  }
+
+  public static boolean migrationCheck() {
+    return Boolean.parseBoolean(get("migrationCheck", "false"));
+  }
+
+  public static String authMigrations() {
+    return get("authMigrations", DEFAULT_AUTH_MIGRATIONS);
+  }
+
+  public static String apiMigrations() {
+    return get("apiMigrations", DEFAULT_API_MIGRATIONS);
   }
 
   private static String get(String key, String defaultValue) {

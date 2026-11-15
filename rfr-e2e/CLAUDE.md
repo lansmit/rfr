@@ -7,6 +7,7 @@
 ```
 
 ## Running
+- Expect `./gradlew e2e` to run only UI tests (`@WebTest` carries `@Tag("ui")`) and `:rfr-e2e:test` everything else; `:rfr-e2e:test --tests` with an explicit filter runs UI tests too.
 - Run tests through Gradle: it attaches the AspectJ agent that Allure `@Step` needs.
 - Call a test working only after a Gradle run passes; walking the scenario through Playwright MCP is not a test run.
 - Run `./gradlew :rfr-e2e:installPlaywright` once on a new machine; otherwise the first test downloads all three browsers. In CI use `installPlaywrightWithDeps`: Ubuntu runners lack Chromium's system libraries.

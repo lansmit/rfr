@@ -9,15 +9,21 @@ import javax.sql.DataSource;
 
 public enum Databases {
 
-  AUTH(TestConfig.authJdbcUrl()),
-  API(TestConfig.apiJdbcUrl());
+  AUTH("rangiffler-auth", TestConfig.authJdbcUrl()),
+  API("rangiffler-api", TestConfig.apiJdbcUrl());
 
+  private final String schema;
   private final DataSource dataSource;
   private final PlatformTransactionManager transactionManager;
 
-  Databases(String jdbcUrl) {
+  Databases(String schema, String jdbcUrl) {
+    this.schema = schema;
     this.dataSource = new DriverManagerDataSource(jdbcUrl, TestConfig.dbUsername(), TestConfig.dbPassword());
     this.transactionManager = new DataSourceTransactionManager(dataSource);
+  }
+
+  public String schema() {
+    return schema;
   }
 
   public DataSource dataSource() {

@@ -26,7 +26,9 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 Все команды — из корня репозитория.
 
 ```bash
-./gradlew e2e                                                              # все тесты
+./gradlew e2e                                                              # UI-тесты (@WebTest → @Tag("ui")) на поднятом стенде
+./gradlew :rfr-e2e:test                                                    # всё остальное: пробы extension'ов, демо; нужна только MySQL
+./gradlew e2e --tests '*TabTest'                                           # часть UI-тестов
 ./gradlew :rfr-e2e:test --tests 'io.student.rangiffler.test.profile.ProfileTest'   # один класс
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'         # один тест
 ./gradlew e2e -Drfr.headless=false                                         # с видимым браузером
@@ -49,11 +51,19 @@ cd rfr-gql-client && npm i && npm run dev # :3001
 |---|---|---|
 | `rfr.front.url` | `RFR_FRONT_URL` | `http://localhost:3001` |
 | `rfr.auth.url` | `RFR_AUTH_URL` | `http://localhost:9001` |
+| `rfr.api.url` | `RFR_API_URL` | `http://localhost:8081` |
 | `rfr.headless` | `RFR_HEADLESS` | `true` |
+| `rfr.browser` | `RFR_BROWSER` | `chromium` (`firefox`, `webkit`) |
+| `rfr.commit` | `RFR_COMMIT` | короткий хеш `HEAD`, его передаёт Gradle; без Gradle — `unknown` |
 | `rfr.auth.jdbc.url` | `RFR_AUTH_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC` |
 | `rfr.api.jdbc.url` | `RFR_API_JDBC_URL` | `jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC` |
 | `rfr.db.username` | `RFR_DB_USERNAME` | `root` |
 | `rfr.db.password` | `RFR_DB_PASSWORD` | `secret` |
+| `rfr.standCheck` | `RFR_STANDCHECK` | `true`: перед первым классом с тегом `ui` ждать MySQL, rfr-auth, rfr-api и фронт |
+| `rfr.standTimeout` | `RFR_STANDTIMEOUT` | `180` — сколько секунд ждать стенд |
+| `rfr.migrationCheck` | `RFR_MIGRATIONCHECK` | `false` (задача `e2e` ставит `true`): сверять миграции БД с бэкендами перед прогоном |
+| `rfr.authMigrations` | `RFR_AUTHMIGRATIONS` | `../rfr-auth/src/main/resources/db/migration/rangiffler-auth` |
+| `rfr.apiMigrations` | `RFR_APIMIGRATIONS` | `../rfr-api/src/main/resources/db/migration/rangiffler-api` |
 
 ## Структура
 
@@ -63,7 +73,11 @@ src/test/
 │   ├── config/TestConfig          # адреса стенда, БД, headless
 │   ├── jupiter/
 │   │   ├── annotation/            # @WebTest, @User
-│   │   └── extension/             # BrowserExtension, UserExtension
+│   │   └── extension/             # BrowserExtension, UserExtension; SuiteExtension — один раз на прогон,
+│   │                              #   AllureEnvironmentExtension — environment.properties для Allure,
+│   │                              #   StandReadinessExtension — ждёт стенд, StandSchemaExtension — сверка миграций
+│   │                              #   (все три через META-INF/services, в этом порядке)
+│   ├── stand/StandService         # сервисы стенда и признаки их готовности
 │   ├── fixture/UserFixture        # создание и удаление тестового пользователя
 │   ├── data/                      # JDBC-репозитории rangiffler-auth / rangiffler-api
 │   ├── model/                     # TestUser
