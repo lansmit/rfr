@@ -11,7 +11,11 @@ import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.UserRequest;
 import io.student.rangiffler.session.GuestSession;
 import io.student.rangiffler.session.UserSession;
+import java.io.IOException;
+import java.lang.reflect.Parameter;
+import java.nio.file.Path;
 import java.util.Optional;
+import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
@@ -19,7 +23,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.platform.commons.support.AnnotationSupport;
 
 // The browser is only reachable through Playwright's internal impl class: may break on upgrade.
-public class SessionExtension implements ParameterResolver {
+public class SessionExtension implements ParameterResolver, AfterEachCallback {
 
   private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(SessionExtension.class);
 
@@ -39,6 +43,31 @@ public class SessionExtension implements ParameterResolver {
     SessionFixture<?> fixture = fixture(parameterContext, BrowserExtension.getOrCreateBrowser(extensionContext));
     extensionContext.getStore(NAMESPACE).put(parameterContext.getIndex(), fixture);
     return fixture.create();
+  }
+
+  // runs before the store closes the fixtures, so every session context is still open
+  @Override
+  public void afterEach(ExtensionContext context) throws IOException {
+    boolean keep = Traces.shouldKeep(context);
+    Parameter[] parameters = context.getRequiredTestMethod().getParameters();
+    for (int i = 0; i < parameters.length; i++) {
+      SessionFixture<?> fixture = context.getStore(NAMESPACE).get(i, SessionFixture.class);
+      if (fixture == null) {
+        continue;
+      }
+      if (keep) {
+        Path trace = Traces.path(context, "trace-" + traceName(parameters[i], i) + ".zip");
+        fixture.saveTrace(trace);
+        Traces.attach(trace);
+      } else {
+        fixture.discardTrace();
+      }
+    }
+  }
+
+  // without -parameters getName() returns a meaningless "arg1", so the position names the trace instead
+  private static String traceName(Parameter parameter, int index) {
+    return parameter.isNamePresent() ? parameter.getName() : "session-" + index;
   }
 
   private static SessionFixture<?> fixture(ParameterContext parameterContext, Browser browser) {

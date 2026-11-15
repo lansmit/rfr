@@ -1,32 +1,27 @@
 package io.student.rangiffler.fixture;
 
 import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
-import io.student.rangiffler.config.BrowserSettings;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.session.UserSession;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
 
 public final class UserSessionFixture implements SessionFixture<UserSession> {
 
-  private final Browser browser;
+  private final SessionContext context;
   private final UserFixture delegate;
-  private BrowserContext context;
 
   public UserSessionFixture(Browser browser, UserFixture delegate) {
-    this.browser = browser;
+    this.context = new SessionContext(browser);
     this.delegate = delegate;
   }
 
   @Override
   public UserSession create() {
     TestUser user = delegate.create();
-    context = BrowserSettings.newContext(browser);
-    Page page = context.newPage();
+    Page page = context.open();
     // waits for the redirect after login, otherwise mainPage() would hand out a page that is still logging in
     LandingPage.open(page)
         .clickLogin()
@@ -38,12 +33,17 @@ public final class UserSessionFixture implements SessionFixture<UserSession> {
   }
 
   @Override
+  public void saveTrace(Path trace) {
+    context.saveTrace(trace);
+  }
+
+  @Override
+  public void discardTrace() {
+    context.discardTrace();
+  }
+
+  @Override
   public void close() {
-    List<Runnable> cleanups = new ArrayList<>();
-    if (context != null) {
-      cleanups.add(context::close);
-    }
-    cleanups.add(delegate::close);
-    Cleanup.runAll(cleanups);
+    Cleanup.runAll(context::close, delegate::close);
   }
 }
