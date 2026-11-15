@@ -6,6 +6,7 @@ import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
 import io.student.rangiffler.page.component.Header;
+import io.student.rangiffler.page.component.PhotoCard;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -32,6 +33,11 @@ public final class MyTravelsPage {
 
   public Header header() {
     return header;
+  }
+
+  public PhotoCard photoCard(String description) {
+    Locator card = page.getByRole(AriaRole.ARTICLE).filter(new Locator.FilterOptions().setHasText(description));
+    return new PhotoCard(card, description);
   }
 
   @Step("Open 'My travels' page")
