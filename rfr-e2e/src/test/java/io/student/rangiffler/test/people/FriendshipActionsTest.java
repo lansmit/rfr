@@ -30,7 +30,7 @@ class FriendshipActionsTest {
     people.table().row(bobName).clickAdd();
     people.checkNotification(Notification.INVITATION_SENT);
 
-    bob.mainPage()
+    bob.myTravelsPage()
         .clickPeople()
         .openTab(PeopleTab.INCOME_INVITATIONS)
         .table()
@@ -45,7 +45,7 @@ class FriendshipActionsTest {
     people.table().row(alice.user().username()).clickAccept();
     people.checkNotification(Notification.INVITATION_ACCEPTED);
 
-    alice.mainPage()
+    alice.myTravelsPage()
         .clickPeople()
         .openTab(PeopleTab.FRIENDS)
         .table()
@@ -60,7 +60,7 @@ class FriendshipActionsTest {
     people.table().row(alice.user().username()).clickDecline();
     people.checkNotification(Notification.INVITATION_DECLINED);
 
-    alice.mainPage()
+    alice.myTravelsPage()
         .clickPeople()
         .openTab(PeopleTab.OUTCOME_INVITATIONS)
         .checkNoPeople();
@@ -71,7 +71,7 @@ class FriendshipActionsTest {
   void cancelledInvitationShouldLeaveAddressee(Page page, @Session @User(outcomeInvitations = 1) UserSession alice) {
     TestUser invitee = alice.user().outcomeInvitations().getFirst();
 
-    PeoplePage people = alice.mainPage().clickPeople().openTab(PeopleTab.OUTCOME_INVITATIONS);
+    PeoplePage people = alice.myTravelsPage().clickPeople().openTab(PeopleTab.OUTCOME_INVITATIONS);
 
     people.table().row(invitee.username()).clickCancel();
     people.checkNotification(Notification.INVITATION_CANCELLED);
@@ -85,7 +85,7 @@ class FriendshipActionsTest {
   @DisplayName("Friendship removed by the requester disappears for the addressee")
   void friendRemovedByRequesterShouldDisappearForAddressee(Page page, @Session @User(friends = 1) UserSession alice) {
     TestUser friend = alice.user().friends().getFirst();
-    PeoplePage people = alice.mainPage().clickPeople().openTab(PeopleTab.FRIENDS);
+    PeoplePage people = alice.myTravelsPage().clickPeople().openTab(PeopleTab.FRIENDS);
     people.table().row(friend.username()).clickRemove();
     people.checkNotification(Notification.FRIEND_DELETED);
 
@@ -101,7 +101,7 @@ class FriendshipActionsTest {
     people.table().row(alice.user().username()).clickRemove();
     people.checkNotification(Notification.FRIEND_DELETED);
 
-    alice.mainPage()
+    alice.myTravelsPage()
         .clickPeople()
         .openTab(PeopleTab.FRIENDS)
         .checkNoPeople();

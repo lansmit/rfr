@@ -22,7 +22,7 @@ public final class UserSessionFixture implements SessionFixture<UserSession> {
   @Override
   public UserSession create() {
     Page page = context.open();
-    // waits for the redirect after login, otherwise mainPage() would hand out a page that is still logging in
+    // waits for the redirect after login, otherwise myTravelsPage() would hand out a page that is still logging in
     LandingPage.open(page)
         .clickLogin()
         .login(user.username(), user.password())

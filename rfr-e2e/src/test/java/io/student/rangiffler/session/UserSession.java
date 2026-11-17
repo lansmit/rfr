@@ -7,7 +7,7 @@ import io.student.rangiffler.page.MyTravelsPage;
 // the fixture leaves the page on 'My travels' after login, so this is an entry point, not a navigation
 public record UserSession(TestUser user, Page page) {
 
-  public MyTravelsPage mainPage() {
+  public MyTravelsPage myTravelsPage() {
     return new MyTravelsPage(page);
   }
 }

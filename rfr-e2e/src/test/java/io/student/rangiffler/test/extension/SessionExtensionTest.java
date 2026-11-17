@@ -195,7 +195,7 @@ final class SessionUserProbe {
     reporter.publishEntry(Map.of(
         "username", bob.user().username(),
         "accountDuring", String.valueOf(AuthAccount.of(bob.user().username(), "").exists())));
-    bob.mainPage().header().checkUserIsLoggedIn();
+    bob.myTravelsPage().header().checkUserIsLoggedIn();
   }
 
   @Test
@@ -285,7 +285,7 @@ final class SessionIsolationProbe {
 
   @Test
   void probe(@Session @User UserSession user, @Session GuestSession guest) {
-    user.mainPage().header().checkUserIsLoggedIn();
+    user.myTravelsPage().header().checkUserIsLoggedIn();
     guest.landingPage().checkUserIsNotLoggedIn();
   }
 }
