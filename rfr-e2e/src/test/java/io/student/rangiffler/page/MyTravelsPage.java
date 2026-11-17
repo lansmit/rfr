@@ -68,6 +68,11 @@ public final class MyTravelsPage {
     return PeoplePage.openedBy(page, peopleLink::click);
   }
 
+  @Step("Log out")
+  public LandingPage clickLogout() {
+    return header.clickLogout();
+  }
+
   @Step("Show travels with friends")
   public MyTravelsPage showWithFriends() {
     withFriendsButton.click();
