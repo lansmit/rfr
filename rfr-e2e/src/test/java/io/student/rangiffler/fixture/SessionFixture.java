@@ -1,14 +1,12 @@
 package io.student.rangiffler.fixture;
 
-import java.nio.file.Path;
+import com.microsoft.playwright.BrowserContext;
 
 public interface SessionFixture<S> extends AutoCloseable {
 
   S create();
 
-  void saveTrace(Path trace);
-
-  void discardTrace();
+  BrowserContext context();
 
   @Override
   void close();

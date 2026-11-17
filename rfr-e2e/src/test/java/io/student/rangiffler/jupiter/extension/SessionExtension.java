@@ -12,8 +12,7 @@ import io.student.rangiffler.session.GuestSession;
 import io.student.rangiffler.session.UserSession;
 import java.io.IOException;
 import java.lang.reflect.Parameter;
-import java.nio.file.Path;
-import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -25,7 +24,7 @@ import org.junit.platform.commons.support.AnnotationSupport;
 // Sessions are created in beforeTestExecution, not beforeEach: the user of a UserSession comes from UserExtension,
 // and only by beforeTestExecution are all beforeEach callbacks guaranteed to be done, whatever the registration order.
 // The browser is only reachable through Playwright's internal impl class: may break on upgrade.
-public class SessionExtension implements BeforeTestExecutionCallback, ParameterResolver, AfterEachCallback {
+public class SessionExtension implements BeforeTestExecutionCallback, ParameterResolver, AfterTestExecutionCallback {
 
   private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(SessionExtension.class);
 
@@ -59,23 +58,16 @@ public class SessionExtension implements BeforeTestExecutionCallback, ParameterR
     return session;
   }
 
-  // runs before the store closes the fixtures, so every session context is still open
+  // not in the fixture's close(): the store closes after Allure has finished the test, and the attachment would be lost
   @Override
-  public void afterEach(ExtensionContext context) throws IOException {
-    boolean keep = Traces.shouldKeep(context);
+  public void afterTestExecution(ExtensionContext context) throws IOException {
     Parameter[] parameters = context.getRequiredTestMethod().getParameters();
     for (int i = 0; i < parameters.length; i++) {
       SessionFixture<?> fixture = context.getStore(NAMESPACE).get(fixtureKey(i), SessionFixture.class);
-      if (fixture == null) {
+      if (fixture == null || fixture.context() == null) {
         continue;
       }
-      if (keep) {
-        Path trace = Traces.path(context, "trace-" + traceName(parameters[i], i) + ".zip");
-        fixture.saveTrace(trace);
-        Traces.attach(trace);
-      } else {
-        fixture.discardTrace();
-      }
+      Traces.finish(fixture.context(), context, "trace-" + traceName(parameters[i], i) + ".zip");
     }
   }
 

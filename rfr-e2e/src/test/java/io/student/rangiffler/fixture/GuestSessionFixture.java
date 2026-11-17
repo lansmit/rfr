@@ -1,11 +1,10 @@
 package io.student.rangiffler.fixture;
 
 import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.session.GuestSession;
-
-import java.nio.file.Path;
 
 public final class GuestSessionFixture implements SessionFixture<GuestSession> {
 
@@ -23,13 +22,8 @@ public final class GuestSessionFixture implements SessionFixture<GuestSession> {
   }
 
   @Override
-  public void saveTrace(Path trace) {
-    context.saveTrace(trace);
-  }
-
-  @Override
-  public void discardTrace() {
-    context.discardTrace();
+  public BrowserContext context() {
+    return context.context();
   }
 
   @Override

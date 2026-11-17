@@ -21,11 +21,15 @@ public final class BrowserSettings {
     context.setDefaultNavigationTimeout(TestConfig.navigationTimeout().toMillis());
   }
 
-  public static Tracing.StartOptions traceOptions() {
+  private static Tracing.StartOptions traceOptions() {
     return new Tracing.StartOptions()
         .setScreenshots(true)
         .setSnapshots(true)
         .setSources(true);
+  }
+
+  public static void startTracing(BrowserContext context, String title) {
+    context.tracing().start(traceOptions().setTitle(title));
   }
 
   public static BrowserContext newContext(Browser browser) {

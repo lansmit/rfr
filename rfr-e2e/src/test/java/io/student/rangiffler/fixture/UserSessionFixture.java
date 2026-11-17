@@ -1,12 +1,11 @@
 package io.student.rangiffler.fixture;
 
 import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.session.UserSession;
-
-import java.nio.file.Path;
 
 // The user belongs to UserExtension: this fixture owns only the browser context and never deletes the user.
 public final class UserSessionFixture implements SessionFixture<UserSession> {
@@ -33,13 +32,8 @@ public final class UserSessionFixture implements SessionFixture<UserSession> {
   }
 
   @Override
-  public void saveTrace(Path trace) {
-    context.saveTrace(trace);
-  }
-
-  @Override
-  public void discardTrace() {
-    context.discardTrace();
+  public BrowserContext context() {
+    return context.context();
   }
 
   @Override

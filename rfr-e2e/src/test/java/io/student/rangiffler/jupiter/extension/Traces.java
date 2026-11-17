@@ -1,5 +1,7 @@
 package io.student.rangiffler.jupiter.extension;
 
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.Tracing;
 import io.qameta.allure.Allure;
 import io.qameta.allure.AttachmentOptions;
 import io.student.rangiffler.config.TestConfig;
@@ -17,18 +19,28 @@ final class Traces {
   private Traces() {
   }
 
-  static boolean shouldKeep(ExtensionContext context) {
+  private static boolean shouldKeep(ExtensionContext context) {
     return context.getExecutionException().isPresent() || TestConfig.traceAll();
   }
 
-  static Path path(ExtensionContext context, String fileName) {
+  private static Path path(ExtensionContext context, String fileName) {
     String testName = context.getRequiredTestClass().getName() + "." + context.getRequiredTestMethod().getName();
     return Paths.get("build", "playwright", testName + "-" + TestConfig.browser(), fileName);
   }
 
-  static void attach(Path trace) throws IOException {
+  private static void attach(Path trace) throws IOException {
     try (InputStream content = Files.newInputStream(trace)) {
       Allure.attachment(trace.getFileName().toString(), "application/zip", content, AttachmentOptions.withFileExtension(".zip"));
     }
+  }
+
+  static void finish(BrowserContext browserContext, ExtensionContext context, String fileName) throws IOException {
+    if (shouldKeep(context)) {
+      browserContext.tracing().stop();
+      return;
+    }
+    Path trace = path(context, fileName);
+    browserContext.tracing().stop(new Tracing.StopOptions().setPath(trace));
+    attach(trace);
   }
 }
