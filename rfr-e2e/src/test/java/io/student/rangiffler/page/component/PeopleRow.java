@@ -40,6 +40,12 @@ public final class PeopleRow {
     return this;
   }
 
+  @Step("Click Cancel for {this.username}")
+  public PeopleRow clickCancel() {
+    button(PeopleAction.CANCEL).click();
+    return this;
+  }
+
   @Step("Click Remove for {this.username}")
   public PeopleRow clickRemove() {
     button(PeopleAction.REMOVE).click();

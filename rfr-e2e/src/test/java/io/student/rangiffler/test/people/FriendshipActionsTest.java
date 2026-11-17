@@ -67,6 +67,21 @@ class FriendshipActionsTest {
   }
 
   @Test
+  @DisplayName("Cancelled invitation disappears from the addressee's income invitations")
+  void cancelledInvitationShouldLeaveAddressee(Page page, @Session @User(outcomeInvitations = 1) UserSession alice) {
+    TestUser invitee = alice.user().outcomeInvitations().getFirst();
+
+    PeoplePage people = alice.mainPage().clickPeople().openTab(PeopleTab.OUTCOME_INVITATIONS);
+
+    people.table().row(invitee.username()).clickCancel();
+    people.checkNotification(Notification.INVITATION_CANCELLED);
+
+    PeopleLogin.openAs(page, invitee)
+        .openTab(PeopleTab.INCOME_INVITATIONS)
+        .checkNoPeople();
+  }
+
+  @Test
   @DisplayName("Friendship removed by the requester disappears for the addressee")
   void friendRemovedByRequesterShouldDisappearForAddressee(Page page, @Session @User(friends = 1) UserSession alice) {
     TestUser friend = alice.user().friends().getFirst();
