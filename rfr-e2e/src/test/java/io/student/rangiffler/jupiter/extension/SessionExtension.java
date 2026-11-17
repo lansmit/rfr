@@ -58,16 +58,30 @@ public class SessionExtension implements BeforeTestExecutionCallback, ParameterR
     return session;
   }
 
-  // not in the fixture's close(): the store closes after Allure has finished the test, and the attachment would be lost
+  // Not in the fixture's close(): it gets no ExtensionContext, so it cannot tell whether the test failed.
+  // Same callback as TraceExtension, so a failure keeps the traces of all contexts or of none.
+  // Each session is finished independently: one failing save must not lose the traces of the others.
   @Override
-  public void afterTestExecution(ExtensionContext context) throws IOException {
+  public void afterTestExecution(ExtensionContext context) throws Exception {
     Parameter[] parameters = context.getRequiredTestMethod().getParameters();
+    Exception failure = null;
     for (int i = 0; i < parameters.length; i++) {
       SessionFixture<?> fixture = context.getStore(NAMESPACE).get(fixtureKey(i), SessionFixture.class);
       if (fixture == null || fixture.context() == null) {
         continue;
       }
-      Traces.finish(fixture.context(), context, "trace-" + traceName(parameters[i], i) + ".zip");
+      try {
+        Traces.finish(fixture.context(), context, "trace-" + traceName(parameters[i], i) + ".zip");
+      } catch (IOException | RuntimeException e) {
+        if (failure == null) {
+          failure = e;
+        } else {
+          failure.addSuppressed(e);
+        }
+      }
+    }
+    if (failure != null) {
+      throw failure;
     }
   }
 
