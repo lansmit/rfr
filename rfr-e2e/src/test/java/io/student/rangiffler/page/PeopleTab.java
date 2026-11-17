@@ -1,24 +1,28 @@
 package io.student.rangiffler.page;
 
+import com.microsoft.playwright.Response;
+import io.student.rangiffler.network.AppResponses;
+import java.util.function.Predicate;
+
 public enum PeopleTab {
-  FRIENDS("Friends", "GetFriends"),
-  ALL_PEOPLE("All People", "GetPeople"),
-  OUTCOME_INVITATIONS("Outcome invitations", "GetOutcomeInvitations"),
-  INCOME_INVITATIONS("Income invitations", "GetInvitations");
+  FRIENDS("Friends", AppResponses.friendsLoaded()),
+  ALL_PEOPLE("All People", AppResponses.allPeopleLoaded()),
+  OUTCOME_INVITATIONS("Outcome invitations", AppResponses.outcomeInvitationsLoaded()),
+  INCOME_INVITATIONS("Income invitations", AppResponses.incomeInvitationsLoaded());
 
   private final String title;
-  private final String operationName;
+  private final Predicate<Response> loaded;
 
-  PeopleTab(String title, String operationName) {
+  PeopleTab(String title, Predicate<Response> loaded) {
     this.title = title;
-    this.operationName = operationName;
+    this.loaded = loaded;
   }
 
   public String title() {
     return title;
   }
 
-  public String operationName() {
-    return operationName;
+  Predicate<Response> loaded() {
+    return loaded;
   }
 }

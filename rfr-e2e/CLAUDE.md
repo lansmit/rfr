@@ -4,11 +4,11 @@
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'   # one test
 ./gradlew e2e -Drfr.headless=false                                   # visible browser
 ./gradlew :rfr-e2e:allureServe                                       # Allure report
-./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on       # keep the trace of a passed test too → build/playwright/<class>.<method>-<browser>/trace.zip
+./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on       # keep the trace of a passed test too → build/playwright/<class>.<method>-<browser>/trace.zip (+ trace-<param>.zip per @Session)
 ./gradlew :rfr-e2e:showTrace -Ptrace=<abs path to trace.zip>         # Trace Viewer
 ```
 
-- To debug a failing UI test, read its trace: `TraceExtension` saves it for every failed UI test (also attached to Allure). Pass `-Drfr.trace=on` only to keep traces of passed tests.
+- To debug a failing UI test, read its trace: it is saved for every failed UI test (also attached to Allure): `trace.zip` for the `Page` parameter's context, `trace-<parameter name>.zip` for each `@Session` context. Pass `-Drfr.trace=on` only to keep traces of passed tests.
 
 ## Running
 - Expect `./gradlew e2e` to run only UI tests (`@UiTest` carries `@Tag("ui")`) and `:rfr-e2e:test` everything else; `:rfr-e2e:test --tests` with an explicit filter runs UI tests too.
@@ -18,11 +18,12 @@
 - Keep parallel execution off (`src/test/resources/junit-platform.properties`) unless asked to enable it.
 
 ## Writing tests
-- Annotate UI test classes with `@UiTest` and take `Page` as a test parameter; don't create Playwright yourself. Put browser settings into `BrowserOptions` (the `OptionsFactory` of `@UsePlaywright`), and keep the locale `en-US` there: rfr-auth localizes messages by `Accept-Language`.
+- Annotate UI test classes with `@UiTest` and take `Page` as a test parameter; don't create Playwright yourself. Put context settings into `config/BrowserSettings` (used by `@UsePlaywright` and by `@Session` contexts alike), and keep the locale `en-US` there: rfr-auth localizes messages by `Accept-Language`.
+- Take a second (third, …) browser as a `@Session @User UserSession` (logged in, `myTravelsPage()`) or `@Session GuestSession` (landing page) parameter; each gets its own context, closed after the test. A user related to the session's user (`alice.user().friends()`, `outcomeInvitations()`) logs into the main `Page` through `test/people/PeopleLogin.openAs`.
 - Get users from a `@User TestUser` parameter. Don't create them through the UI unless registration is under test; cleanup in both DBs is automatic.
 - Log in only through the UI; never put tokens into localStorage.
 - Create and delete test data only through fixtures; never use broad `DELETE`/`TRUNCATE`: other tests' data lives in the same DBs.
 - Read stand settings only through `TestConfig`; override with `-Drfr.<key>` or `RFR_<KEY>`.
 - Put all SQL for test data into immutable records in `data/db` (`AuthAccount`, `Profile`, `Friendship`, `Friendships`) with `create()` / `delete()` / `exists()`; fixtures call only these records.
 - When a new table references users, add its delete script to `Profile`'s `DELETE_CHILDREN_SQL`: the schema has no cascading foreign keys.
-- Test extensions with EngineTestKit: put the probe classes it runs inside the test class as `static` nested classes annotated `@ProbeTarget` (skipped unless the outer test's `run()` sets `ProbeTargetCondition.RUN_PROBES`; Gradle also excludes its tag), report facts with `TestReporter`, and check the DB in the outer test after the probe's store has closed.
+- Test extensions with EngineTestKit: put the probe classes it runs inside the test class as `static` nested classes annotated `@ProbeTarget` (UI targets with `@UiTest` go top-level in the same file: Playwright reads `@UsePlaywright` from the outermost class only) (skipped unless the outer test's `run()` sets `ProbeTargetCondition.RUN_PROBES`; Gradle also excludes its tag), report facts with `TestReporter`, and check the DB in the outer test after the probe's store has closed.

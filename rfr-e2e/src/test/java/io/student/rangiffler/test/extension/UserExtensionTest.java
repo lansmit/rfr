@@ -40,6 +40,7 @@ class UserExtensionTest {
 
   private static final String CONFLICT_USERNAME = "rfr_probe_conflict";
   private static final String NEGATIVE_COUNT_USERNAME = "rfr_probe_negative_count";
+  private static final String UNSUPPORTED_TYPE_USERNAME = "rfr_probe_unsupported_type";
 
   @Test
   @DisplayName("User exists in auth and API during the test and is deleted from both after it")
@@ -125,7 +126,6 @@ class UserExtensionTest {
       EngineExecutionResults results = run(CreationFailureProbe.class);
 
       results.testEvents().assertStatistics(stats -> stats.started(1).failed(1));
-      assertInstanceOf(ParameterResolutionException.class, failure(results));
       assertFalse(AuthAccount.of(CONFLICT_USERNAME, "").exists(), "auth account left for " + CONFLICT_USERNAME);
     } finally {
       new Profile(CONFLICT_USERNAME).delete();
@@ -139,17 +139,18 @@ class UserExtensionTest {
     EngineExecutionResults results = run(probe);
 
     results.testEvents().assertStatistics(stats -> stats.started(1).failed(1));
-    assertInstanceOf(IllegalArgumentException.class, failure(results).getCause());
+    assertInstanceOf(IllegalArgumentException.class, failure(results));
     assertUserDeleted(NEGATIVE_COUNT_USERNAME);
   }
 
   @Test
-  @DisplayName("@User on a parameter that is not TestUser is not resolved")
+  @DisplayName("@User on a parameter that is not TestUser is not resolved, and the user created for it is deleted")
   void unsupportedParameterTypeShouldNotBeResolved() {
     EngineExecutionResults results = run(UnsupportedTypeProbe.class);
 
     results.testEvents().assertStatistics(stats -> stats.started(1).failed(1));
     assertInstanceOf(ParameterResolutionException.class, failure(results));
+    assertUserDeleted(UNSUPPORTED_TYPE_USERNAME);
   }
 
   @Test
@@ -309,7 +310,7 @@ class UserExtensionTest {
   static class UnsupportedTypeProbe {
 
     @Test
-    void probe(@User String user) {
+    void probe(@User(username = UNSUPPORTED_TYPE_USERNAME) String user) {
     }
   }
 }

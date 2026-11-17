@@ -82,6 +82,11 @@ def commitHash = providers.exec {
     ignoreExitValue = true
 }.standardOutput.asText.map { it.trim() ?: 'unknown' }.getOrElse('unknown')
 
+// SessionExtension names trace files after @Session parameters; without the flag it falls back to their index
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add('-parameters')
+}
+
 tasks.withType(Test).configureEach {
     // results depend on the running stand, not only on the test code, so never reuse a previous run
     outputs.upToDateWhen { false }
