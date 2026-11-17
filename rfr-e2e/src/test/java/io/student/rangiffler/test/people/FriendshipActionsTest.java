@@ -24,7 +24,7 @@ class FriendshipActionsTest {
   @DisplayName("Sent invitation shows up in the addressee's income invitations")
   void invitationShouldReachAddressee(Page page, @User TestUser alice, @Session @User UserSession bob) {
     String bobName = bob.user().username();
-    PeoplePage people = PeopleLogin.open(page, alice)
+    PeoplePage people = PeopleLogin.openAs(page, alice)
         .openTab(PeopleTab.ALL_PEOPLE)
         .searchPeople(bobName);
     people.table().row(bobName).clickAdd();
@@ -41,7 +41,7 @@ class FriendshipActionsTest {
   @DisplayName("Accepted invitation makes the sender and the addressee friends")
   void acceptedInvitationShouldMakeFriends(Page page, @Session @User(outcomeInvitations = 1) UserSession alice) {
     TestUser invitee = alice.user().outcomeInvitations().getFirst();
-    PeoplePage people = PeopleLogin.open(page, invitee).openTab(PeopleTab.INCOME_INVITATIONS);
+    PeoplePage people = PeopleLogin.openAs(page, invitee).openTab(PeopleTab.INCOME_INVITATIONS);
     people.table().row(alice.user().username()).clickAccept();
     people.checkNotification(Notification.INVITATION_ACCEPTED);
 
@@ -55,7 +55,7 @@ class FriendshipActionsTest {
   @Test
   @DisplayName("Declined invitation disappears from the sender's outcome invitations")
   void declinedInvitationShouldLeaveSender(Page page, @Session @User(outcomeInvitations = 1) UserSession alice) {
-    PeoplePage people = PeopleLogin.open(page, alice.user().outcomeInvitations().getFirst())
+    PeoplePage people = PeopleLogin.openAs(page, alice.user().outcomeInvitations().getFirst())
         .openTab(PeopleTab.INCOME_INVITATIONS);
     people.table().row(alice.user().username()).clickDecline();
     people.checkNotification(Notification.INVITATION_DECLINED);
@@ -74,7 +74,7 @@ class FriendshipActionsTest {
     people.table().row(friend.username()).clickRemove();
     people.checkNotification(Notification.FRIEND_DELETED);
 
-    PeopleLogin.open(page, friend)
+    PeopleLogin.openAs(page, friend)
         .openTab(PeopleTab.FRIENDS)
         .checkNoPeople();
   }
@@ -82,7 +82,7 @@ class FriendshipActionsTest {
   @Test
   @DisplayName("Friendship removed by the addressee disappears for the requester")
   void friendRemovedByAddresseeShouldDisappearForRequester(Page page, @Session @User(friends = 1) UserSession alice) {
-    PeoplePage people = PeopleLogin.open(page, alice.user().friends().getFirst()).openTab(PeopleTab.FRIENDS);
+    PeoplePage people = PeopleLogin.openAs(page, alice.user().friends().getFirst()).openTab(PeopleTab.FRIENDS);
     people.table().row(alice.user().username()).clickRemove();
     people.checkNotification(Notification.FRIEND_DELETED);
 

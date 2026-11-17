@@ -19,7 +19,7 @@
 
 ## Writing tests
 - Annotate UI test classes with `@UiTest` and take `Page` as a test parameter; don't create Playwright yourself. Put context settings into `config/BrowserSettings` (used by `@UsePlaywright` and by `@Session` contexts alike), and keep the locale `en-US` there: rfr-auth localizes messages by `Accept-Language`.
-- Take a second (third, …) browser as a `@Session @User UserSession` (logged in, `mainPage()`) or `@Session GuestSession` (landing page) parameter; each gets its own context, closed after the test. A user related to the session's user (`alice.user().friends()`, `outcomeInvitations()`) logs into the main `Page` through `test/people/PeopleLogin`.
+- Take a second (third, …) browser as a `@Session @User UserSession` (logged in, `mainPage()`) or `@Session GuestSession` (landing page) parameter; each gets its own context, closed after the test. A user related to the session's user (`alice.user().friends()`, `outcomeInvitations()`) logs into the main `Page` through `test/people/PeopleLogin.openAs`.
 - Get users from a `@User TestUser` parameter. Don't create them through the UI unless registration is under test; cleanup in both DBs is automatic.
 - Log in only through the UI; never put tokens into localStorage.
 - Create and delete test data only through fixtures; never use broad `DELETE`/`TRUNCATE`: other tests' data lives in the same DBs.

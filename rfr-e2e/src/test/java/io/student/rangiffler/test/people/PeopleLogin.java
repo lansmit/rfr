@@ -10,7 +10,7 @@ final class PeopleLogin {
   private PeopleLogin() {
   }
 
-  static PeoplePage open(Page page, TestUser user) {
+  static PeoplePage openAs(Page page, TestUser user) {
     return LandingPage.open(page)
         .clickLogin()
         .login(user.username(), user.password())
