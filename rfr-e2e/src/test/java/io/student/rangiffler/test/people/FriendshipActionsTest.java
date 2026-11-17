@@ -78,7 +78,8 @@ class FriendshipActionsTest {
 
     PeopleLogin.openAs(page, invitee)
         .openTab(PeopleTab.INCOME_INVITATIONS)
-        .checkNoPeople();
+        .table()
+        .checkUsernames(List.of(alice.user().username()));
   }
 
   @Test
