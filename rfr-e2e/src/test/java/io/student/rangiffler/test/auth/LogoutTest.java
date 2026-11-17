@@ -31,6 +31,6 @@ class LogoutTest {
         .clickPeople()
         .openTab(PeopleTab.FRIENDS)
         .table()
-        .checkUsernames(List.of("no-such-friend"));
+        .checkUsernames(List.of(bob.user().friends().getFirst().username()));
   }
 }
