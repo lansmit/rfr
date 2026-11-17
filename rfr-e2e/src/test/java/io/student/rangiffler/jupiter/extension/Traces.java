@@ -35,7 +35,7 @@ final class Traces {
   }
 
   static void finish(BrowserContext browserContext, ExtensionContext context, String fileName) throws IOException {
-    if (shouldKeep(context)) {
+    if (!shouldKeep(context)) {
       browserContext.tracing().stop();
       return;
     }
