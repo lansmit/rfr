@@ -93,6 +93,12 @@ public final class PeoplePage {
     return this;
   }
 
+  @Step("Check notification on People page with the server message: {message}")
+  public PeoplePage checkServerMessage(String message) {
+    snackbar.checkServerMessage(message);
+    return this;
+  }
+
   @Step("Check that people list is empty")
   public PeoplePage checkNoPeople() {
     assertNotNull(peopleResponse, "people list was not loaded through open(), reload() or a tab method");

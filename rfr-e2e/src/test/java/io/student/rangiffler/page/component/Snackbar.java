@@ -21,4 +21,10 @@ public final class Snackbar {
     assertThat(alert.getByText(notification.text(), new Locator.GetByTextOptions().setExact(true))).isVisible();
     return this;
   }
+
+  @Step("Check notification with the server message: {message}")
+  public Snackbar checkServerMessage(String message) {
+    assertThat(alert).hasText(message);
+    return this;
+  }
 }
