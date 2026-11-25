@@ -2,6 +2,7 @@ package io.student.rangiffler.jupiter.extension;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.impl.junit.BrowserContextExtension;
 import com.microsoft.playwright.impl.junit.BrowserExtension;
 import com.microsoft.playwright.junit.UsePlaywright;
 import io.student.rangiffler.fixture.GuestSessionFixture;
@@ -101,7 +102,7 @@ public class SessionExtension implements BeforeTestExecutionCallback, ParameterR
     boolean withUser = parameter.isAnnotationPresent(User.class);
     boolean useStubs = parameter.getAnnotation(Session.class).useStubs();
     Function<BrowserContext, Optional<GqlStubs>> stubsFactory =
-        sessionContext -> useStubs ? Optional.of(new GqlStubs(sessionContext)) : Optional.empty();
+        sessionContext -> useStubs ? Optional.of(new GqlStubs(BrowserContextExtension.getOrCreateBrowserContext(context))) : Optional.empty();
     if (parameter.getType() == UserSession.class && withUser) {
       return new UserSessionFixture(browser(context), UserExtension.user(context, index), stubsFactory);
     }
