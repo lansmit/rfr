@@ -16,12 +16,14 @@ public final class PatchedOperation implements GqlOperation {
       .build();
 
   private final String operationName;
-  private final String path;
+  private final String pathText;
+  private final JsonPath path;
   private final Object value;
 
   PatchedOperation(String operationName, String path, Object value) {
     this.operationName = operationName;
-    this.path = path;
+    this.pathText = path;
+    this.path = JsonPath.compile(path);
     this.value = value;
   }
 
@@ -41,11 +43,17 @@ public final class PatchedOperation implements GqlOperation {
       }
       String patched = document.set(path, value).jsonString();
       route.fulfill(new Route.FulfillOptions().setResponse(response).setBody(patched));
+      response.dispose();
     } catch (RuntimeException failure) {
-      route.abort();
-      throw new IllegalStateException(
-          "Patch of GraphQL operation " + operationName + " by JSON Path " + path + " failed: " + failure.getMessage(),
+      IllegalStateException patchFailure = new IllegalStateException(
+          "Patch of GraphQL operation " + operationName + " by JSON Path " + pathText + " failed: " + failure.getMessage(),
           failure);
+      try {
+        route.abort();
+      } catch (RuntimeException abortFailure) {
+        patchFailure.addSuppressed(abortFailure);
+      }
+      throw patchFailure;
     }
   }
 }
