@@ -27,7 +27,7 @@ class PhotoLikesPatchTest {
   @DisplayName("Patched likes count is shown on its card, the neighbour card keeps its real count")
   void patchedLikesShouldChangeOnlyTheirCard(Page page, @User TestUser user, GqlStubs stubs) {
     int likes = randomLikesCount();
-    stubs.patch("GetFeed", "$.data.feed.photos.edgs[?(@.node.description == '" + PATCHED + "')].node.likes.total", likes);
+    stubs.patch("GetFeed", "$.data.feed.photos.edges[?(@.node.description == '" + PATCHED + "')].node.likes.total", likes);
 
     LoginPage loginPage = LandingPage.open(page).clickLogin();
     new AwaitedGqlOperation(page, "GetFeed", () -> loginPage.login(user.username(), user.password())).await();
