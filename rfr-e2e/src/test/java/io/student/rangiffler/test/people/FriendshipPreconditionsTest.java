@@ -6,6 +6,7 @@ import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.page.PeopleTab;
+import io.student.rangiffler.page.component.Notification;
 import io.student.rangiffler.page.PeoplePage;
 import io.student.rangiffler.page.component.PeopleTable;
 import org.junit.jupiter.api.DisplayName;
@@ -74,8 +75,9 @@ class FriendshipPreconditionsTest {
         .searchPeople(invitee.username());
     peoplePage.table()
         .row(invitee.username())
-        .sendInvitation();
-    peoplePage.reload()
+        .clickAdd();
+    peoplePage.checkNotification(Notification.INVITATION_SENT)
+        .reload()
         .openTab(PeopleTab.OUTCOME_INVITATIONS)
         .table()
         .checkUsernames(List.of(invitee.username()))

@@ -6,23 +6,22 @@ import com.microsoft.playwright.Response;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
+import io.student.rangiffler.network.AppResponses;
 import io.student.rangiffler.page.component.Header;
+import io.student.rangiffler.page.component.Notification;
 import io.student.rangiffler.page.component.PeopleTable;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import io.student.rangiffler.page.component.Snackbar;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public final class PeoplePage {
 
   public static final String URL = TestConfig.frontUrl() + "/people";
-  private static final ObjectMapper JSON = new ObjectMapper();
 
   private final Page page;
   private final Header header;
   private final PeopleTable table;
+  private final Snackbar snackbar;
   private final Locator searchInput;
   private final Locator searchButton;
   private Response peopleResponse;
@@ -31,6 +30,7 @@ public final class PeoplePage {
     this.page = page;
     this.header = new Header(page);
     this.table = new PeopleTable(page);
+    this.snackbar = new Snackbar(page);
 
     Locator main = page.getByRole(AriaRole.MAIN);
 
@@ -48,14 +48,19 @@ public final class PeoplePage {
 
   @Step("Open people page")
   public static PeoplePage open(Page page) {
+    return openedBy(page, () -> page.navigate(URL));
+  }
+
+  // the page opens on the Friends tab: its list is the response checkNoPeople() reads
+  static PeoplePage openedBy(Page page, Runnable navigation) {
     PeoplePage peoplePage = new PeoplePage(page);
-    peoplePage.peopleResponse = page.waitForResponse(response -> GraphQl.isOperationResponse(response, "GetFriends"), () -> page.navigate(URL));
+    peoplePage.peopleResponse = page.waitForResponse(AppResponses.friendsLoaded(), navigation);
     return peoplePage;
   }
 
   @Step("Reload people page")
   public PeoplePage reload() {
-    peopleResponse = page.waitForResponse(response -> GraphQl.isOperationResponse(response, "GetFriends"), () -> page.reload());
+    peopleResponse = page.waitForResponse(AppResponses.friendsLoaded(), () -> page.reload());
     return this;
   }
 
@@ -64,7 +69,7 @@ public final class PeoplePage {
   public PeoplePage openTab(PeopleTab tab) {
     Locator tabLocator = page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title()).setExact(true));
     if (!"true".equals(tabLocator.getAttribute("aria-selected"))) {
-      peopleResponse = page.waitForResponse(response -> GraphQl.isOperationResponse(response, tab.operationName()), tabLocator::click);
+      peopleResponse = page.waitForResponse(tab.loaded(), tabLocator::click);
     }
     return this;
   }
@@ -76,14 +81,16 @@ public final class PeoplePage {
     return this;
   }
 
+  @Step("Check notification on People page: {notification.text}")
+  public PeoplePage checkNotification(Notification notification) {
+    snackbar.checkShown(notification);
+    return this;
+  }
+
   @Step("Check that people list is empty")
   public PeoplePage checkNoPeople() {
     assertNotNull(peopleResponse, "people list was not loaded through open(), reload() or a tab method");
-    JsonNode body = JSON.readTree(peopleResponse.text());
-    assertFalse(body.has("errors"), "GraphQL returned errors: " + body.get("errors"));
-    JsonNode edges = body.findValue("edges");
-    assertNotNull(edges, "no people list in the response: " + body);
-    assertEquals(0, edges.size(), "people list is not empty: " + edges);
+    AppResponses.checkPeopleListEmpty(peopleResponse);
     table.checkEmpty();
     return this;
   }

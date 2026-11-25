@@ -1,8 +1,8 @@
 package io.student.rangiffler.jupiter.extension;
 
-import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.junit.Options;
 import com.microsoft.playwright.junit.OptionsFactory;
+import io.student.rangiffler.config.BrowserSettings;
 import io.student.rangiffler.config.TestConfig;
 
 public class BrowserOptions implements OptionsFactory {
@@ -14,10 +14,7 @@ public class BrowserOptions implements OptionsFactory {
     return new Options()
         .setBrowserName(TestConfig.browser())
         .setHeadless(TestConfig.headless())
-        .setContextOptions(new Browser.NewContextOptions()
-            .setViewportSize(TestConfig.viewportWidth(), TestConfig.viewportHeight())
-            // keeps error messages in English on any machine (e.g. one with a Russian OS), otherwise tests checking the text fail
-            .setLocale("en-US"))
+        .setContextOptions(BrowserSettings.contextOptions())
         .setTestIdAttribute(TEST_ID_ATTRIBUTE);
   }
 }
