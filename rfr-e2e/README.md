@@ -86,6 +86,9 @@ src/test/
 │   ├── data/                      # JDBC-репозитории rangiffler-auth / rangiffler-api
 │   ├── model/                     # TestUser
 │   ├── utils/                     # случайные данные, файлы из classpath
+│   ├── network/                   # GraphQL на уровне сети: ожидания ответов (AppResponses, AwaitedGqlOperation) и стабы GqlStubs —
+│   │                              #   hold (задержать), respond (ответ из файла), patch (одно поле настоящего ответа по JSON Path,
+│   │                              #   Jayway json-path), error (ошибка бэкенда); пакет знает только config
 │   ├── page/                      # Page Object: Landing, Login, Register, MyTravels, Profile
 │   │   └── component/             # общие куски UI: Header
 │   └── test/
@@ -94,7 +97,8 @@ src/test/
 │       └── fake/                  # проверка, что сборка и Allure работают
 └── resources/
     ├── sql/                       # запросы для создания и удаления пользователей
-    └── img/                       # тестовые картинки (аватары)
+    ├── img/                       # тестовые картинки (аватары)
+    └── gql/                       # тела ответов GraphQL для GqlStubs.respond
 ```
 
 ### Как устроен тест
