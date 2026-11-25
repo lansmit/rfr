@@ -19,12 +19,14 @@ public final class PeopleTable {
   private final Locator rows;
   private final Locator emptyMessage;
   private final Locator loader;
+  private final Locator loadError;
 
   public PeopleTable(Page page) {
     this.page = page;
     Locator main = page.getByRole(AriaRole.MAIN);
     this.rows = main.getByTestId("people-row");
     this.emptyMessage = main.getByText("There are no users yet", new Locator.GetByTextOptions().setExact(true));
+    this.loadError = main.getByRole(AriaRole.ALERT);
     this.loader = main.getByRole(AriaRole.PROGRESSBAR, new Locator.GetByRoleOptions().setName("Loading users").setExact(true));
   }
 
@@ -59,6 +61,12 @@ public final class PeopleTable {
         () -> assertThat(rows).hasCount(0),
         () -> assertThat(emptyMessage).isHidden()
     );
+    return this;
+  }
+
+  @Step("Check that the table failed to load with error: {message}")
+  public PeopleTable checkLoadError(String message) {
+    assertThat(loadError).containsText(message);
     return this;
   }
 

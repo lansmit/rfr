@@ -4,17 +4,21 @@ import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
 import io.student.rangiffler.model.TestUser;
+import io.student.rangiffler.network.GqlStubs;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.session.UserSession;
 
 // The user belongs to UserExtension: this fixture owns only the browser context and never deletes the user.
+import java.util.Optional;
+import java.util.function.Function;
+
 public final class UserSessionFixture implements SessionFixture<UserSession> {
 
   private final SessionContext context;
   private final TestUser user;
 
-  public UserSessionFixture(Browser browser, TestUser user, boolean useStubs) {
-    this.context = new SessionContext(browser, useStubs);
+  public UserSessionFixture(Browser browser, TestUser user, Function<BrowserContext, Optional<GqlStubs>> stubsFactory) {
+    this.context = new SessionContext(browser, stubsFactory);
     this.user = user;
   }
 

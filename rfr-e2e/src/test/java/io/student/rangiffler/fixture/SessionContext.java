@@ -7,25 +7,24 @@ import io.student.rangiffler.config.BrowserSettings;
 import io.student.rangiffler.network.GqlStubs;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 final class SessionContext {
 
   private final Browser browser;
-  private final boolean useStubs;
+  private final Function<BrowserContext, Optional<GqlStubs>> stubsFactory;
   private BrowserContext context;
   private GqlStubs stubs;
 
-  SessionContext(Browser browser, boolean useStubs) {
+  SessionContext(Browser browser, Function<BrowserContext, Optional<GqlStubs>> stubsFactory) {
     this.browser = browser;
-    this.useStubs = useStubs;
+    this.stubsFactory = stubsFactory;
   }
 
   Page open() {
     context = BrowserSettings.newContext(browser);
     BrowserSettings.startTracing(context, "session");
-    if (useStubs) {
-      stubs = new GqlStubs(context);
-    }
+    stubs = stubsFactory.apply(context).orElse(null);
     return context.newPage();
   }
 
