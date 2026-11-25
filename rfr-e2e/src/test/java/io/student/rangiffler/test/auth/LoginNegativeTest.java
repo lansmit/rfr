@@ -1,8 +1,8 @@
 package io.student.rangiffler.test.auth;
 
 import com.microsoft.playwright.Page;
+import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
-import io.student.rangiffler.jupiter.annotation.WebTest;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import static io.student.rangiffler.utils.RandomDataUtils.randomPassword;
 import static io.student.rangiffler.utils.RandomDataUtils.randomUsername;
 
-@WebTest
+@UiTest
 @DisplayName("Login: negative")
 class LoginNegativeTest {
 

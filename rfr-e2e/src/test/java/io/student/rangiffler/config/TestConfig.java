@@ -10,12 +10,17 @@ public final class TestConfig {
   private static final String DEFAULT_API_URL = "http://localhost:8081";
   private static final int DEFAULT_STAND_TIMEOUT_SECONDS = 180;
   private static final boolean DEFAULT_HEADLESS = true;
+  private static final int DEFAULT_VIEWPORT_WIDTH = 1920;
+  private static final int DEFAULT_VIEWPORT_HEIGHT = 1080;
+  private static final int DEFAULT_ACTION_TIMEOUT_SECONDS = 5;
+  private static final int DEFAULT_NAVIGATION_TIMEOUT_SECONDS = 30;
   private static final String DEFAULT_AUTH_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-auth?serverTimezone=UTC";
   private static final String DEFAULT_API_JDBC_URL = "jdbc:mysql://localhost:3306/rangiffler-api?serverTimezone=UTC";
   private static final String DEFAULT_DB_USERNAME = "root";
   private static final String DEFAULT_DB_PASSWORD = "secret";
   private static final String DEFAULT_AUTH_MIGRATIONS = "../rfr-auth/src/main/resources/db/migration/rangiffler-auth";
   private static final String DEFAULT_API_MIGRATIONS = "../rfr-api/src/main/resources/db/migration/rangiffler-api";
+  private static final String DEFAULT_FEED_MOCKS = "../rfr-api/src/main/resources/mock";
 
   private TestConfig() {
   }
@@ -42,6 +47,26 @@ public final class TestConfig {
 
   public static boolean headless() {
     return Boolean.parseBoolean(get("headless", String.valueOf(DEFAULT_HEADLESS)));
+  }
+
+  public static int viewportWidth() {
+    return Integer.parseInt(get("viewportWidth",String.valueOf(DEFAULT_VIEWPORT_WIDTH)));
+  }
+
+  public static int viewportHeight() {
+    return Integer.parseInt(get("viewportHeight",String.valueOf(DEFAULT_VIEWPORT_HEIGHT)));
+  }
+
+  public static boolean traceAll() {
+    return "on".equalsIgnoreCase(get("trace", "off"));
+  }
+
+  public static Duration actionTimeout() {
+    return Duration.ofSeconds(Long.parseLong(get("actionTimeout", String.valueOf(DEFAULT_ACTION_TIMEOUT_SECONDS))));
+  }
+
+  public static Duration navigationTimeout() {
+    return Duration.ofSeconds(Long.parseLong(get("navigationTimeout", String.valueOf(DEFAULT_NAVIGATION_TIMEOUT_SECONDS))));
   }
 
   public static String authJdbcUrl() {
@@ -83,6 +108,10 @@ public final class TestConfig {
 
   public static String apiMigrations() {
     return get("apiMigrations", DEFAULT_API_MIGRATIONS);
+  }
+
+  public static String feedMocks() {
+    return get("feedMocks", DEFAULT_FEED_MOCKS);
   }
 
   private static String get(String key, String defaultValue) {

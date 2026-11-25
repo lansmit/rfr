@@ -36,7 +36,7 @@ bash ports.sh
 # also runs :rfr-e2e:test (everything except @Tag("ui")), which needs MySQL; to only compile: :rfr-auth:build :rfr-api:build :rfr-e2e:testClasses
 ./gradlew build
 
-# UI tests (@Tag("ui"), i.e. @WebTest): waits up to rfr.standTimeout (180 s) for the stand, then checks migrations once; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
+# UI tests (@Tag("ui"), i.e. @UiTest): waits up to rfr.standTimeout (180 s) for the stand, then checks migrations once; doesn't start the stand — run runAll first. Single test, headed mode, Allure: rfr-e2e/CLAUDE.md
 ./gradlew e2e
 
 cd rfr-gql-client && npm ci && npm run dev

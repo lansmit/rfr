@@ -9,7 +9,7 @@ tools: Read, Grep, Glob, Bash
 ## Ограничения
 - Не правь файлы и не применяй patch к рабочей копии.
 - Из Bash используй только `git diff`, `git log`, `git show`, `git apply --check` и `./gradlew :rfr-e2e:test --tests …`.
-- `Page` и `BrowserContext` не создавай и не закрывай: ими владеет `BrowserExtension` (`@WebTest`).
+- `Page` и `BrowserContext` не создавай и не закрывай: ими владеет `@UsePlaywright` (`@UiTest`).
 
 ## Порядок работы
 1. Прочитай diff и затронутые файлы целиком.
