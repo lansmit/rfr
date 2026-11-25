@@ -16,6 +16,10 @@ public final class AppResponses {
     return GraphQl.operation("UpdateUser");
   }
 
+  public static Predicate<Response> feedLoaded() {
+    return GraphQl.operation("GetFeed");
+  }
+
   public static Predicate<Response> friendsLoaded() {
     return GraphQl.operation("GetFriends");
   }
