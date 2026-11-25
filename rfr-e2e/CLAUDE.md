@@ -4,7 +4,7 @@
 ./gradlew :rfr-e2e:test --tests '*ProfileTest.avatarShouldBeSaved'   # one test
 ./gradlew e2e -Drfr.headless=false                                   # visible browser
 ./gradlew :rfr-e2e:allureServe                                       # Allure report
-./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on       # keep the trace of a passed test too → build/playwright/<class>.<method>-<browser>/trace.zip
+./gradlew :rfr-e2e:test --tests '*MainPageTest' -Drfr.trace=on       # keep the trace of a passed test too → build/playwright/<run>/<class>.<method>-<browser>[-<invocation>]/trace.zip
 ./gradlew :rfr-e2e:showTrace -Ptrace=<abs path to trace.zip>         # Trace Viewer
 ```
 
