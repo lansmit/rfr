@@ -122,7 +122,7 @@ public final class ProfilePage {
 
   @Step("Check profile form: firstname={firstname}, surname={surname}")
   public ProfilePage checkProfileForm(String firstname, String surname) {
-    assertAll(
+    assertAll("Profile form does not show firstname " + firstname + " and surname " + surname,
         () -> assertThat(firstnameInput).hasValue(firstname),
         () -> assertThat(surnameInput).hasValue(surname)
     );

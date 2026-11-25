@@ -54,7 +54,7 @@ public final class RegisterPage {
 
   @Step("Check that registration is successful")
   public RegisterPage checkRegistrationSuccess() {
-    assertAll(
+    assertAll("Registration of the new user is not confirmed",
         () -> assertThat(successMessage).hasText("Congratulations! You've registered!"),
         () -> assertThat(signInLink).isVisible()
     );

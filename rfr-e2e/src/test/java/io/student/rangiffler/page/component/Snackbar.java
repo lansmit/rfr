@@ -15,7 +15,7 @@ public final class Snackbar {
     this.alert = page.getByRole(AriaRole.ALERT);
   }
 
-  @Step("Check notification: {notification.text}")
+  @Step("Check notification: {notification}")
   public Snackbar checkShown(Notification notification) {
     assertThat(alert.getByText(notification.text(), new Locator.GetByTextOptions().setExact(true))).isVisible();
     return this;

@@ -37,7 +37,7 @@ public final class Header {
 
   @Step("Check that header of an authenticated user is shown")
   public Header checkUserIsLoggedIn() {
-    assertAll(
+    assertAll("Header does not show an authenticated user",
         () -> assertThat(profileLink).isVisible(),
         () -> assertThat(logoutButton).isVisible()
     );

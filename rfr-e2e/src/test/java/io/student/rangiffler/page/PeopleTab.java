@@ -25,4 +25,9 @@ public enum PeopleTab {
   Predicate<Response> loaded() {
     return loaded;
   }
+
+  @Override
+  public String toString() {
+    return title;
+  }
 }

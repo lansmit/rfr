@@ -18,4 +18,9 @@ public enum Notification {
   public String text() {
     return text;
   }
+
+  @Override
+  public String toString() {
+    return text;
+  }
 }

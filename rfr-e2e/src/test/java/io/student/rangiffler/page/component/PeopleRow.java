@@ -55,7 +55,7 @@ public final class PeopleRow {
 
   @Step("Check that {this.username} has status {status}")
   public PeopleRow checkStatus(FriendStatus status) {
-    assertAll(
+    assertAll("Row of " + username + " does not match status " + status,
         () -> assertThat(buttons).hasText(status.actions().stream().map(PeopleAction::title).toArray(String[]::new)),
         () -> {
           if (status.waiting()) {

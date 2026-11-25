@@ -31,7 +31,7 @@ public final class PhotoCard {
 
   @Step("Check that photo '{this.description}' has actions and like buttons")
   public PhotoCard checkOwnPhotoButtons() {
-    assertAll(
+    assertAll("Own photo " + description + " does not show actions and like buttons",
         () -> assertThat(actionsButton).isVisible(),
         () -> assertThat(likeButton).isVisible()
     );
@@ -40,7 +40,7 @@ public final class PhotoCard {
 
   @Step("Check that photo '{this.description}' has like button but no actions")
   public PhotoCard checkNoPhotoActions() {
-    assertAll(
+    assertAll("Photo " + description + " is not in the feed or shows the owner's actions button",
         () -> assertThat(likeButton).isVisible(),
         () -> assertThat(actionsButton).hasCount(0)
     );

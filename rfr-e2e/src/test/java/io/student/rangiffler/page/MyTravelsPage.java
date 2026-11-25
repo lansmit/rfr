@@ -121,7 +121,7 @@ public final class MyTravelsPage {
 
   @Step("Check main elements of 'My travels' page")
   public MyTravelsPage checkMainElements() {
-    assertAll(
+    assertAll("'My travels' page does not show its main elements",
         () -> assertThat(travelsMapHeading).isVisible(),
         () -> assertThat(photosHeading).isVisible(),
         () -> assertThat(addPhotoButton).isVisible(),
@@ -137,7 +137,7 @@ public final class MyTravelsPage {
     for (String description : descriptions) {
       checks.add(() -> assertThat(photoCardLocator(description)).isVisible());
     }
-    assertAll(checks);
+    assertAll("Feed does not show exactly the photos " + descriptions, checks);
     return this;
   }
 
@@ -147,7 +147,7 @@ public final class MyTravelsPage {
     return this;
   }
 
-  @Step("Check notification on 'My travels' page: {notification.text}")
+  @Step("Check notification on 'My travels' page: {notification}")
   public MyTravelsPage checkNotification(Notification notification) {
     snackbar.checkShown(notification);
     return this;

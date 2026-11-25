@@ -65,7 +65,7 @@ public final class PeoplePage {
   }
 
   // a click on the already selected tab doesn't remount the table, so no request would come
-  @Step("Open '{tab.title}' tab")
+  @Step("Open '{tab}' tab")
   public PeoplePage openTab(PeopleTab tab) {
     Locator tabLocator = page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title()).setExact(true));
     if (!"true".equals(tabLocator.getAttribute("aria-selected"))) {
@@ -74,7 +74,7 @@ public final class PeoplePage {
     return this;
   }
 
-  @Step("Click '{tab.title}' tab without waiting for its list")
+  @Step("Click '{tab}' tab without waiting for its list")
   public PeoplePage clickTab(PeopleTab tab) {
     page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title()).setExact(true)).click();
     return this;
@@ -87,7 +87,7 @@ public final class PeoplePage {
     return this;
   }
 
-  @Step("Check notification on People page: {notification.text}")
+  @Step("Check notification on People page: {notification}")
   public PeoplePage checkNotification(Notification notification) {
     snackbar.checkShown(notification);
     return this;

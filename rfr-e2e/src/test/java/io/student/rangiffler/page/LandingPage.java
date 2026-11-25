@@ -43,7 +43,7 @@ public final class LandingPage {
 
   @Step("Check that a guest is offered to log in or register")
   public LandingPage checkUserIsNotLoggedIn() {
-    assertAll(
+    assertAll("Landing page does not offer a guest to log in or register",
         () -> assertThat(loginButton).isVisible(),
         () -> assertThat(registerButton).isVisible()
     );

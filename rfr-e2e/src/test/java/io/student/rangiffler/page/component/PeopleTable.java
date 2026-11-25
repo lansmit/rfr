@@ -39,13 +39,13 @@ public final class PeopleTable {
     for (String username : usernames) {
       checks.add(() -> assertThat(rowLocator(username)).isVisible());
     }
-    assertAll(checks);
+    assertAll("People table does not show exactly the users " + usernames, checks);
     return this;
   }
 
   @Step("Check that the table is empty")
   public PeopleTable checkEmpty() {
-    assertAll(
+    assertAll("People table is not empty",
         () -> assertThat(rows).hasCount(0),
         () -> assertThat(emptyMessage).isVisible()
     );
@@ -54,7 +54,7 @@ public final class PeopleTable {
 
   @Step("Check that the table is loading")
   public PeopleTable checkLoading() {
-    assertAll(
+    assertAll("People table does not show that users are loading",
         () -> assertThat(loader).isVisible(),
         () -> assertThat(rows).hasCount(0),
         () -> assertThat(emptyMessage).isHidden()
