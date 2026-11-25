@@ -2,13 +2,14 @@ package io.student.rangiffler.test.travels;
 
 import com.microsoft.playwright.Page;
 import io.student.rangiffler.data.mock.MockFeed;
+import io.student.rangiffler.domain.Notification;
 import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
+import io.student.rangiffler.network.AwaitedGqlOperation;
 import io.student.rangiffler.network.GqlStubs;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.page.MyTravelsPage;
-import io.student.rangiffler.page.component.Notification;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,8 +33,8 @@ class PhotoDeleteTest {
         .checkPhotosCount(photosBefore);
     stubs.respond("GetFeed", "gql/feed-without-amsterdam.json");
     myTravelsPage.photoCard(description).deletePhoto();
-    myTravelsPage.checkNotification(Notification.PHOTO_DELETED)
-        .reload()
-        .checkPhotosCount(photosBefore - 1);
+    myTravelsPage.checkNotification(Notification.PHOTO_DELETED);
+    new AwaitedGqlOperation(page, "GetFeed", myTravelsPage::reload).await();
+    myTravelsPage.checkPhotosCount(photosBefore - 1);
   }
 }

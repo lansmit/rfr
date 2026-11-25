@@ -5,9 +5,9 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
+import io.student.rangiffler.domain.Notification;
 import io.student.rangiffler.network.AppResponses;
 import io.student.rangiffler.page.component.Header;
-import io.student.rangiffler.page.component.Notification;
 import io.student.rangiffler.page.component.Snackbar;
 
 import java.nio.file.Path;

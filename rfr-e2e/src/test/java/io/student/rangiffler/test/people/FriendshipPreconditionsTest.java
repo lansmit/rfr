@@ -2,12 +2,12 @@ package io.student.rangiffler.test.people;
 
 import com.microsoft.playwright.Page;
 import io.student.rangiffler.domain.FriendStatus;
+import io.student.rangiffler.domain.Notification;
 import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.page.PeopleTab;
-import io.student.rangiffler.page.component.Notification;
 import io.student.rangiffler.page.PeoplePage;
 import io.student.rangiffler.page.component.PeopleTable;
 import org.junit.jupiter.api.DisplayName;
