@@ -2,6 +2,7 @@ package io.student.rangiffler.test.people;
 
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Route;
+import io.student.rangiffler.domain.FriendStatus;
 import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
@@ -26,7 +27,7 @@ class FriendsTabTest {
     PeopleTable table = login(page, user).table();
     List<String> friends = usernames(user.friends());
     table.checkUsernames(friends);
-    friends.forEach(friend -> table.row(friend).checkFriend());
+    friends.forEach(friend -> table.row(friend).checkStatus(FriendStatus.FRIEND));
   }
 
   @Test
@@ -44,7 +45,7 @@ class FriendsTabTest {
         .table();
     List<String> friends = usernames(user.friends());
     table.checkUsernames(friends);
-    friends.forEach(friend -> table.row(friend).checkFriend());
+    friends.forEach(friend -> table.row(friend).checkStatus(FriendStatus.FRIEND));
   }
 
   @Test

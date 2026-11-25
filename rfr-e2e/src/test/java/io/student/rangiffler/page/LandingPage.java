@@ -7,6 +7,7 @@ import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class LandingPage {
 
@@ -42,8 +43,10 @@ public final class LandingPage {
 
   @Step("Check that a guest is offered to log in or register")
   public LandingPage checkUserIsNotLoggedIn() {
-    assertThat(loginButton).isVisible();
-    assertThat(registerButton).isVisible();
+    assertAll(
+        () -> assertThat(loginButton).isVisible(),
+        () -> assertThat(registerButton).isVisible()
+    );
     return this;
   }
 }

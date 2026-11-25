@@ -13,6 +13,7 @@ import io.student.rangiffler.page.component.Snackbar;
 import java.nio.file.Path;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static io.student.rangiffler.utils.ResourceUtils.pngDataUrl;
 
 public final class ProfilePage {
@@ -121,8 +122,10 @@ public final class ProfilePage {
 
   @Step("Check profile form: firstname={firstname}, surname={surname}")
   public ProfilePage checkProfileForm(String firstname, String surname) {
-    assertThat(firstnameInput).hasValue(firstname);
-    assertThat(surnameInput).hasValue(surname);
+    assertAll(
+        () -> assertThat(firstnameInput).hasValue(firstname),
+        () -> assertThat(surnameInput).hasValue(surname)
+    );
     return this;
   }
 

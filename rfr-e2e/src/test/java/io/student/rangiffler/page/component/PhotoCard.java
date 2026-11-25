@@ -5,6 +5,7 @@ import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class PhotoCard {
 
@@ -20,16 +21,20 @@ public final class PhotoCard {
 
   @Step("Check that photo '{this.description}' has actions and like buttons")
   public PhotoCard checkOwnPhotoButtons() {
-    assertThat(actionsButton).isVisible();
-    assertThat(likeButton).isVisible();
+    assertAll(
+        () -> assertThat(actionsButton).isVisible(),
+        () -> assertThat(likeButton).isVisible()
+    );
     return this;
   }
 
   @Step("Check that photo '{this.description}' has like button but no actions")
   public PhotoCard checkNoPhotoActions() {
     // the like button proves the card is found, otherwise the missing actions button would pass for a missing card
-    assertThat(likeButton).isVisible();
-    assertThat(actionsButton).hasCount(0);
+    assertAll(
+        () -> assertThat(likeButton).isVisible(),
+        () -> assertThat(actionsButton).hasCount(0)
+    );
     return this;
   }
 }

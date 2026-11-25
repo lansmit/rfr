@@ -1,6 +1,7 @@
 package io.student.rangiffler.test.people;
 
 import com.microsoft.playwright.Page;
+import io.student.rangiffler.domain.FriendStatus;
 import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
@@ -24,7 +25,7 @@ class FriendshipPreconditionsTest {
     PeopleTable table = login(page, user).table();
     List<String> friends = usernames(user.friends());
     table.checkUsernames(friends);
-    friends.forEach(friend -> table.row(friend).checkFriend());
+    friends.forEach(friend -> table.row(friend).checkStatus(FriendStatus.FRIEND));
   }
 
   @Test
@@ -35,7 +36,7 @@ class FriendshipPreconditionsTest {
         .table();
     List<String> inviters = usernames(user.incomeInvitations());
     table.checkUsernames(inviters);
-    inviters.forEach(inviter -> table.row(inviter).checkIncomeInvitation());
+    inviters.forEach(inviter -> table.row(inviter).checkStatus(FriendStatus.INVITATION_RECEIVED));
   }
 
   @Test
@@ -46,7 +47,7 @@ class FriendshipPreconditionsTest {
         .table();
     List<String> invitees = usernames(user.outcomeInvitations());
     table.checkUsernames(invitees);
-    invitees.forEach(invitee -> table.row(invitee).checkOutcomeInvitation());
+    invitees.forEach(invitee -> table.row(invitee).checkStatus(FriendStatus.INVITATION_SENT));
   }
 
   @Test
@@ -59,12 +60,12 @@ class FriendshipPreconditionsTest {
     peoplePage.table()
         .checkUsernames(List.of(friend))
         .row(friend)
-        .checkFriend();
+        .checkStatus(FriendStatus.FRIEND);
     peoplePage.openTab(PeopleTab.INCOME_INVITATIONS)
         .table()
         .checkUsernames(List.of(inviter))
         .row(inviter)
-        .checkIncomeInvitation();
+        .checkStatus(FriendStatus.INVITATION_RECEIVED);
   }
 
   @Test
@@ -82,7 +83,7 @@ class FriendshipPreconditionsTest {
         .table()
         .checkUsernames(List.of(invitee.username()))
         .row(invitee.username())
-        .checkOutcomeInvitation();
+        .checkStatus(FriendStatus.INVITATION_SENT);
   }
 
   private static List<String> usernames(List<TestUser> users) {

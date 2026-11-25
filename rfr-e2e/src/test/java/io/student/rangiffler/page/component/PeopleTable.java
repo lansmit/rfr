@@ -5,9 +5,13 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 
+import org.junit.jupiter.api.function.Executable;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class PeopleTable {
 
@@ -28,17 +32,21 @@ public final class PeopleTable {
 
   @Step("Check that the table shows exactly {usernames}")
   public PeopleTable checkUsernames(List<String> usernames) {
-    assertThat(rows).hasCount(usernames.size());
+    List<Executable> checks = new ArrayList<>();
+    checks.add(() -> assertThat(rows).hasCount(usernames.size()));
     for (String username : usernames) {
-      assertThat(rowLocator(username)).isVisible();
+      checks.add(() -> assertThat(rowLocator(username)).isVisible());
     }
+    assertAll(checks);
     return this;
   }
 
   @Step("Check that the table is empty")
   public PeopleTable checkEmpty() {
-    assertThat(rows).hasCount(0);
-    assertThat(emptyMessage).isVisible();
+    assertAll(
+        () -> assertThat(rows).hasCount(0),
+        () -> assertThat(emptyMessage).isVisible()
+    );
     return this;
   }
 

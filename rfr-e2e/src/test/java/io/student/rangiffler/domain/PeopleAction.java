@@ -1,4 +1,4 @@
-package io.student.rangiffler.page.component;
+package io.student.rangiffler.domain;
 
 public enum PeopleAction {
   ADD("Add"),

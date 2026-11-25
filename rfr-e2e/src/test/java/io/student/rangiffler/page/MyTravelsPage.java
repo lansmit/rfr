@@ -8,10 +8,14 @@ import io.student.rangiffler.config.TestConfig;
 import io.student.rangiffler.page.component.Header;
 import io.student.rangiffler.page.component.PhotoCard;
 
+import org.junit.jupiter.api.function.Executable;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class MyTravelsPage {
 
@@ -106,19 +110,23 @@ public final class MyTravelsPage {
 
   @Step("Check main elements of 'My travels' page")
   public MyTravelsPage checkMainElements() {
-    assertThat(travelsMapHeading).isVisible();
-    assertThat(photosHeading).isVisible();
-    assertThat(addPhotoButton).isVisible();
-    assertThat(onlyMyTravelsButton).hasAttribute("aria-pressed", "true");
+    assertAll(
+        () -> assertThat(travelsMapHeading).isVisible(),
+        () -> assertThat(photosHeading).isVisible(),
+        () -> assertThat(addPhotoButton).isVisible(),
+        () -> assertThat(onlyMyTravelsButton).hasAttribute("aria-pressed", "true")
+    );
     return this;
   }
 
   @Step("Check that exactly photos {descriptions} are shown")
   public MyTravelsPage checkPhotos(List<String> descriptions) {
-    assertThat(photoCards).hasCount(descriptions.size());
+    List<Executable> checks = new ArrayList<>();
+    checks.add(() -> assertThat(photoCards).hasCount(descriptions.size()));
     for (String description : descriptions) {
-      assertThat(photoCardLocator(description)).isVisible();
+      checks.add(() -> assertThat(photoCardLocator(description)).isVisible());
     }
+    assertAll(checks);
     return this;
   }
 

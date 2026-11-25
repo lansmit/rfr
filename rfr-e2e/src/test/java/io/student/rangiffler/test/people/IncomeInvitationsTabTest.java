@@ -1,6 +1,7 @@
 package io.student.rangiffler.test.people;
 
 import com.microsoft.playwright.Page;
+import io.student.rangiffler.domain.FriendStatus;
 import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
@@ -25,7 +26,7 @@ class IncomeInvitationsTabTest {
         .table();
     List<String> inviters = usernames(user.incomeInvitations());
     table.checkUsernames(inviters);
-    inviters.forEach(inviter -> table.row(inviter).checkIncomeInvitation());
+    inviters.forEach(inviter -> table.row(inviter).checkStatus(FriendStatus.INVITATION_RECEIVED));
   }
 
   @Test
