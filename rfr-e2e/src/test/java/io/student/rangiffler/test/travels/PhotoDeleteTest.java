@@ -5,6 +5,7 @@ import io.student.rangiffler.data.mock.MockFeed;
 import io.student.rangiffler.jupiter.annotation.UiTest;
 import io.student.rangiffler.jupiter.annotation.User;
 import io.student.rangiffler.model.TestUser;
+import io.student.rangiffler.network.GqlStubs;
 import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.page.MyTravelsPage;
 import io.student.rangiffler.page.component.Notification;
@@ -21,7 +22,7 @@ class PhotoDeleteTest {
   @Test
   @Disabled("Не реализовано в rfr-api")
   @DisplayName("Deleted photo disappears from the feed after reload")
-  void deletedPhotoShouldDisappearAfterReload(Page page, @User TestUser user) {
+  void deletedPhotoShouldDisappearAfterReload(Page page, @User TestUser user, GqlStubs stubs) {
     int photosBefore = ONLY_MINE.photos().size();
     String description = ONLY_MINE.ownPhotos().getFirst().description();
 
@@ -29,6 +30,7 @@ class PhotoDeleteTest {
         .clickLogin()
         .login(user.username(), user.password())
         .checkPhotosCount(photosBefore);
+    stubs.respond("GetFeed", "gql/feed-without-amsterdam.json");
     myTravelsPage.photoCard(description).deletePhoto();
     myTravelsPage.checkNotification(Notification.PHOTO_DELETED)
         .reload()

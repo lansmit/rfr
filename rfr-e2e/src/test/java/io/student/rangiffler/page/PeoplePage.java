@@ -74,6 +74,12 @@ public final class PeoplePage {
     return this;
   }
 
+  @Step("Click '{tab.title}' tab without waiting for its list")
+  public PeoplePage clickTab(PeopleTab tab) {
+    page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title()).setExact(true)).click();
+    return this;
+  }
+
   @Step("Search people: {query}")
   public PeoplePage searchPeople(String query) {
     searchInput.fill(query);
