@@ -1,6 +1,8 @@
 package io.student.rangiffler.jupiter.extension;
 
 import com.microsoft.playwright.impl.junit.BrowserContextExtension;
+import io.student.rangiffler.fixture.SessionFixture;
+import io.student.rangiffler.jupiter.annotation.Session;
 import io.student.rangiffler.network.GqlStubs;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -31,7 +33,14 @@ public class GqlStubsExtension implements ParameterResolver {
               + "@Session(useStubs = true) in the session record. Got " + stubsParameters + " in "
               + extensionContext.getRequiredTestMethod());
     }
-    GqlStubs stubs = new GqlStubs(BrowserContextExtension.getOrCreateBrowserContext(extensionContext));
+    SessionFixture<?> session = null;
+    for (int index = 0; index < parameters.length; index++) {
+      if (parameters[index].isAnnotationPresent(Session.class)) {
+        session = extensionContext.getStore(ExtensionContext.Namespace.create(SessionExtension.class))
+            .get("session-fixture-" + index, SessionFixture.class);
+      }
+    }
+    GqlStubs stubs = new GqlStubs(session.context());
     extensionContext.getStore(NAMESPACE).put(STUBS_KEY, stubs);
     return stubs;
   }
