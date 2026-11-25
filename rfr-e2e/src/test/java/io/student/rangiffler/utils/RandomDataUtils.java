@@ -19,6 +19,15 @@ public final class RandomDataUtils {
     return randomString(10);
   }
 
+  public static String randomErrorMessage() {
+    return "Stubbed error " + randomString(10);
+  }
+
+  public static int randomLikesCount() {
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+    return 10 * random.nextInt(10, 100) + random.nextInt(1, 10);
+  }
+
   private static String randomString(int length) {
     ThreadLocalRandom random = ThreadLocalRandom.current();
     StringBuilder sb = new StringBuilder(length);

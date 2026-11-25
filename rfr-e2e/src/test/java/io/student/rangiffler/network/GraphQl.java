@@ -15,10 +15,10 @@ final class GraphQl {
   }
 
   static Predicate<Response> operation(String operationName) {
-    return response -> {
-      String body = response.request().postData();
-      return response.url().endsWith("/graphql") && body != null && body.contains("\"operationName\":\"" + operationName + "\"");
-    };
+    return response -> GqlRequest.from(response.request())
+        .map(GqlRequest::operationName)
+        .filter(operationName::equals)
+        .isPresent();
   }
 
   // GraphQL reports failures with HTTP 200, so only the body tells an error from an empty result

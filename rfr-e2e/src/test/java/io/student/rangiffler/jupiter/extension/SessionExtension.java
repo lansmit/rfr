@@ -1,6 +1,7 @@
 package io.student.rangiffler.jupiter.extension;
 
 import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.impl.junit.BrowserExtension;
 import com.microsoft.playwright.junit.UsePlaywright;
 import io.student.rangiffler.fixture.GuestSessionFixture;
@@ -8,10 +9,13 @@ import io.student.rangiffler.fixture.SessionFixture;
 import io.student.rangiffler.fixture.UserSessionFixture;
 import io.student.rangiffler.jupiter.annotation.Session;
 import io.student.rangiffler.jupiter.annotation.User;
+import io.student.rangiffler.network.GqlStubs;
 import io.student.rangiffler.session.GuestSession;
 import io.student.rangiffler.session.UserSession;
 import java.io.IOException;
 import java.lang.reflect.Parameter;
+import java.util.Optional;
+import java.util.function.Function;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
@@ -95,11 +99,14 @@ public class SessionExtension implements BeforeTestExecutionCallback, ParameterR
       throw new ExtensionConfigurationException("@Session needs a browser: annotate the test class with @UiTest");
     }
     boolean withUser = parameter.isAnnotationPresent(User.class);
+    boolean useStubs = parameter.getAnnotation(Session.class).useStubs();
+    Function<BrowserContext, Optional<GqlStubs>> stubsFactory =
+        sessionContext -> useStubs ? Optional.of(new GqlStubs(sessionContext)) : Optional.empty();
     if (parameter.getType() == UserSession.class && withUser) {
-      return new UserSessionFixture(browser(context), UserExtension.user(context, index));
+      return new UserSessionFixture(browser(context), UserExtension.user(context, index), stubsFactory);
     }
     if (parameter.getType() == GuestSession.class && !withUser) {
-      return new GuestSessionFixture(browser(context));
+      return new GuestSessionFixture(browser(context), stubsFactory);
     }
     throw new ExtensionConfigurationException(
         "@Session expects GuestSession without @User or UserSession with @User, got "

@@ -4,6 +4,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
+import io.student.rangiffler.domain.Notification;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -15,9 +16,15 @@ public final class Snackbar {
     this.alert = page.getByRole(AriaRole.ALERT);
   }
 
-  @Step("Check notification: {notification.text}")
+  @Step("Check notification: {notification}")
   public Snackbar checkShown(Notification notification) {
     assertThat(alert.getByText(notification.text(), new Locator.GetByTextOptions().setExact(true))).isVisible();
+    return this;
+  }
+
+  @Step("Check notification with the server message: {message}")
+  public Snackbar checkServerMessage(String message) {
+    assertThat(alert).hasText(message);
     return this;
   }
 }

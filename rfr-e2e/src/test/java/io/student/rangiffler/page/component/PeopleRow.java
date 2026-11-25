@@ -3,10 +3,11 @@ package io.student.rangiffler.page.component;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
-
-import java.util.Arrays;
+import io.student.rangiffler.domain.FriendStatus;
+import io.student.rangiffler.domain.PeopleAction;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class PeopleRow {
 
@@ -52,24 +53,18 @@ public final class PeopleRow {
     return this;
   }
 
-  @Step("Check that {this.username} is a friend")
-  public PeopleRow checkFriend() {
-    return checkActions(PeopleAction.REMOVE);
-  }
-
-  @Step("Check that {this.username} sent an income invitation")
-  public PeopleRow checkIncomeInvitation() {
-    return checkActions(PeopleAction.ACCEPT, PeopleAction.DECLINE);
-  }
-
-  @Step("Check that an outcome invitation to {this.username} is waiting")
-  public PeopleRow checkOutcomeInvitation() {
-    assertThat(waitingLabel).isVisible();
-    return checkActions(PeopleAction.CANCEL);
-  }
-
-  private PeopleRow checkActions(PeopleAction... actions) {
-    assertThat(buttons).hasText(Arrays.stream(actions).map(PeopleAction::title).toArray(String[]::new));
+  @Step("Check that {this.username} has status {status}")
+  public PeopleRow checkStatus(FriendStatus status) {
+    assertAll("Row of " + username + " does not match status " + status,
+        () -> assertThat(buttons).hasText(status.actions().stream().map(PeopleAction::title).toArray(String[]::new)),
+        () -> {
+          if (status.waiting()) {
+            assertThat(waitingLabel).isVisible();
+          } else {
+            assertThat(waitingLabel).isHidden();
+          }
+        }
+    );
     return this;
   }
 

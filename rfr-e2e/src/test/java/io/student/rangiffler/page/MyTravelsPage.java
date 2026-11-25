@@ -5,13 +5,19 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
+import io.student.rangiffler.domain.Notification;
 import io.student.rangiffler.page.component.Header;
 import io.student.rangiffler.page.component.PhotoCard;
+import io.student.rangiffler.page.component.Snackbar;
 
+import org.junit.jupiter.api.function.Executable;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class MyTravelsPage {
 
@@ -29,6 +35,7 @@ public final class MyTravelsPage {
   private final Locator resetCountryFilterButton;
   private final Locator photoCards;
   private final Locator peopleLink;
+  private final Snackbar snackbar;
 
   public MyTravelsPage(Page page) {
     this.page = page;
@@ -47,6 +54,7 @@ public final class MyTravelsPage {
     this.resetCountryFilterButton = main.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Reset country filter").setExact(true));
     this.photoCards = main.getByRole(AriaRole.ARTICLE);
     this.peopleLink = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("People").setExact(true));
+    this.snackbar = new Snackbar(page);
   }
 
   public Header header() {
@@ -71,6 +79,12 @@ public final class MyTravelsPage {
   @Step("Log out")
   public LandingPage clickLogout() {
     return header.clickLogout();
+  }
+
+  @Step("Reload 'My travels' page")
+  public MyTravelsPage reload() {
+    page.reload();
+    return this;
   }
 
   @Step("Show travels with friends")
@@ -106,19 +120,35 @@ public final class MyTravelsPage {
 
   @Step("Check main elements of 'My travels' page")
   public MyTravelsPage checkMainElements() {
-    assertThat(travelsMapHeading).isVisible();
-    assertThat(photosHeading).isVisible();
-    assertThat(addPhotoButton).isVisible();
-    assertThat(onlyMyTravelsButton).hasAttribute("aria-pressed", "true");
+    assertAll("'My travels' page does not show its main elements",
+        () -> assertThat(travelsMapHeading).isVisible(),
+        () -> assertThat(photosHeading).isVisible(),
+        () -> assertThat(addPhotoButton).isVisible(),
+        () -> assertThat(onlyMyTravelsButton).hasAttribute("aria-pressed", "true")
+    );
     return this;
   }
 
   @Step("Check that exactly photos {descriptions} are shown")
   public MyTravelsPage checkPhotos(List<String> descriptions) {
-    assertThat(photoCards).hasCount(descriptions.size());
+    List<Executable> checks = new ArrayList<>();
+    checks.add(() -> assertThat(photoCards).hasCount(descriptions.size()));
     for (String description : descriptions) {
-      assertThat(photoCardLocator(description)).isVisible();
+      checks.add(() -> assertThat(photoCardLocator(description)).isVisible());
     }
+    assertAll("Feed does not show exactly the photos " + descriptions, checks);
+    return this;
+  }
+
+  @Step("Check that {count} photos are shown")
+  public MyTravelsPage checkPhotosCount(int count) {
+    assertThat(photoCards).hasCount(count);
+    return this;
+  }
+
+  @Step("Check notification on 'My travels' page: {notification}")
+  public MyTravelsPage checkNotification(Notification notification) {
+    snackbar.checkShown(notification);
     return this;
   }
 

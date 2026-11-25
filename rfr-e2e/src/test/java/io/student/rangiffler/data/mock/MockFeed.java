@@ -13,7 +13,7 @@ public record MockFeed(List<Photo> photos, int countriesVisited) {
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
-  public record Photo(String description, String country, boolean isOwner) {
+  public record Photo(String description, String country, boolean isOwner, int likes) {
   }
 
   public static MockFeed onlyMine() {
@@ -26,6 +26,13 @@ public record MockFeed(List<Photo> photos, int countriesVisited) {
 
   public List<String> descriptions() {
     return photos.stream().map(Photo::description).toList();
+  }
+
+  public Photo photo(String description) {
+    return photos.stream()
+        .filter(photo -> photo.description().equals(description))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("No photo " + description + " in the mock feed"));
   }
 
   public List<Photo> ownPhotos() {
@@ -48,7 +55,8 @@ public record MockFeed(List<Photo> photos, int countriesVisited) {
       photos.add(new Photo(
           node.path("description").asString(),
           node.path("country").path("name").asString(),
-          node.path("isOwner").asBoolean()));
+          node.path("isOwner").asBoolean(),
+          node.path("likes").path("total").asInt()));
     }
     return new MockFeed(List.copyOf(photos), feed.path("stat").size());
   }

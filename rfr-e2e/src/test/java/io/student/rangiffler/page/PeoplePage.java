@@ -6,9 +6,9 @@ import com.microsoft.playwright.Response;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
+import io.student.rangiffler.domain.Notification;
 import io.student.rangiffler.network.AppResponses;
 import io.student.rangiffler.page.component.Header;
-import io.student.rangiffler.page.component.Notification;
 import io.student.rangiffler.page.component.PeopleTable;
 import io.student.rangiffler.page.component.Snackbar;
 
@@ -65,12 +65,18 @@ public final class PeoplePage {
   }
 
   // a click on the already selected tab doesn't remount the table, so no request would come
-  @Step("Open '{tab.title}' tab")
+  @Step("Open '{tab}' tab")
   public PeoplePage openTab(PeopleTab tab) {
     Locator tabLocator = page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title()).setExact(true));
     if (!"true".equals(tabLocator.getAttribute("aria-selected"))) {
       peopleResponse = page.waitForResponse(tab.loaded(), tabLocator::click);
     }
+    return this;
+  }
+
+  @Step("Click '{tab}' tab without waiting for its list")
+  public PeoplePage clickTab(PeopleTab tab) {
+    page.getByRole(AriaRole.TAB, new Page.GetByRoleOptions().setName(tab.title()).setExact(true)).click();
     return this;
   }
 
@@ -81,9 +87,15 @@ public final class PeoplePage {
     return this;
   }
 
-  @Step("Check notification on People page: {notification.text}")
+  @Step("Check notification on People page: {notification}")
   public PeoplePage checkNotification(Notification notification) {
     snackbar.checkShown(notification);
+    return this;
+  }
+
+  @Step("Check notification on People page with the server message: {message}")
+  public PeoplePage checkServerMessage(String message) {
+    snackbar.checkServerMessage(message);
     return this;
   }
 

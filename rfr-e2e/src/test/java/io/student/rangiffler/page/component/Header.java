@@ -8,6 +8,7 @@ import io.student.rangiffler.page.LandingPage;
 import io.student.rangiffler.page.ProfilePage;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class Header {
 
@@ -36,8 +37,10 @@ public final class Header {
 
   @Step("Check that header of an authenticated user is shown")
   public Header checkUserIsLoggedIn() {
-    assertThat(profileLink).isVisible();
-    assertThat(logoutButton).isVisible();
+    assertAll("Header does not show an authenticated user",
+        () -> assertThat(profileLink).isVisible(),
+        () -> assertThat(logoutButton).isVisible()
+    );
     return this;
   }
 }

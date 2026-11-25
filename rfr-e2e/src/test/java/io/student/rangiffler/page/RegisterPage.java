@@ -7,6 +7,7 @@ import io.qameta.allure.Step;
 import io.student.rangiffler.config.TestConfig;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class RegisterPage {
 
@@ -53,8 +54,10 @@ public final class RegisterPage {
 
   @Step("Check that registration is successful")
   public RegisterPage checkRegistrationSuccess() {
-    assertThat(successMessage).hasText("Congratulations! You've registered!");
-    assertThat(signInLink).isVisible();
+    assertAll("Registration of the new user is not confirmed",
+        () -> assertThat(successMessage).hasText("Congratulations! You've registered!"),
+        () -> assertThat(signInLink).isVisible()
+    );
     return this;
   }
 }

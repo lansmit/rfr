@@ -12,4 +12,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(SessionExtension.class)
 public @interface Session {
+
+  boolean useStubs() default false;
 }
