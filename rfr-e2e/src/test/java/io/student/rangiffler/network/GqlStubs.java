@@ -49,6 +49,13 @@ public final class GqlStubs implements AutoCloseable {
     return operation;
   }
 
+  @Step("Patch GraphQL operation {operationName}: set {path} to {value}")
+  public PatchedOperation patch(String operationName, String path, Object value) {
+    PatchedOperation operation = new PatchedOperation(operationName, path, value);
+    stub(operation);
+    return operation;
+  }
+
   @Step("Respond to GraphQL operation {operationName} with error {type}: {message}")
   public StubbedOperation error(String operationName, GqlErrorType type, String message) {
     StubbedOperation operation = StubbedOperation.withBody(operationName, errorBody(type, message));

@@ -5,6 +5,8 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import io.qameta.allure.Step;
 
+import java.util.regex.Pattern;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -14,12 +16,20 @@ public final class PhotoCard {
   private final Locator actionsButton;
   private final Locator likeButton;
   private final Locator deleteMenuItem;
+  private final Locator likesCounter;
 
   public PhotoCard(Locator self, String description) {
     this.description = description;
     this.actionsButton = self.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Photo actions").setExact(true));
     this.likeButton = self.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("like").setExact(true));
+    this.likesCounter = self.getByText(Pattern.compile("^\\d+ likes?$"));
     this.deleteMenuItem = self.page().getByRole(AriaRole.MENUITEM, new Page.GetByRoleOptions().setName("Delete").setExact(true));
+  }
+
+  @Step("Check that photo '{this.description}' has {count} likes")
+  public PhotoCard checkLikes(int count) {
+    assertThat(likesCounter).hasText(count + (count == 1 ? " like" : " likes"));
+    return this;
   }
 
   @Step("Delete photo '{this.description}'")

@@ -35,6 +35,7 @@ dependencies {
     testImplementation "org.springframework:spring-jdbc"
     testImplementation "org.springframework.security:spring-security-crypto"
     testImplementation "tools.jackson.core:jackson-databind"
+    testImplementation "com.jayway.jsonpath:json-path"
     testRuntimeOnly "com.mysql:mysql-connector-j"
     testImplementation "org.flywaydb:flyway-core:$flywayVersion"
     testRuntimeOnly "org.flywaydb:flyway-mysql:$flywayVersion"
