@@ -10,15 +10,15 @@ public final class GuestSessionFixture implements SessionFixture<GuestSession> {
 
   private final SessionContext context;
 
-  public GuestSessionFixture(Browser browser) {
-    this.context = new SessionContext(browser);
+  public GuestSessionFixture(Browser browser, boolean useStubs) {
+    this.context = new SessionContext(browser, useStubs);
   }
 
   @Override
   public GuestSession create() {
     Page page = context.open();
     LandingPage.open(page);
-    return new GuestSession(page);
+    return new GuestSession(page, context.stubs());
   }
 
   @Override

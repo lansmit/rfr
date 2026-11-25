@@ -13,8 +13,8 @@ public final class UserSessionFixture implements SessionFixture<UserSession> {
   private final SessionContext context;
   private final TestUser user;
 
-  public UserSessionFixture(Browser browser, TestUser user) {
-    this.context = new SessionContext(browser);
+  public UserSessionFixture(Browser browser, TestUser user, boolean useStubs) {
+    this.context = new SessionContext(browser, useStubs);
     this.user = user;
   }
 
@@ -28,7 +28,7 @@ public final class UserSessionFixture implements SessionFixture<UserSession> {
         .checkIsOpened()
         .header()
         .checkUserIsLoggedIn();
-    return new UserSession(user, page);
+    return new UserSession(user, page, context.stubs());
   }
 
   @Override

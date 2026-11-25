@@ -95,11 +95,12 @@ public class SessionExtension implements BeforeTestExecutionCallback, ParameterR
       throw new ExtensionConfigurationException("@Session needs a browser: annotate the test class with @UiTest");
     }
     boolean withUser = parameter.isAnnotationPresent(User.class);
+    boolean useStubs = parameter.getAnnotation(Session.class).useStubs();
     if (parameter.getType() == UserSession.class && withUser) {
-      return new UserSessionFixture(browser(context), UserExtension.user(context, index));
+      return new UserSessionFixture(browser(context), UserExtension.user(context, index), useStubs);
     }
     if (parameter.getType() == GuestSession.class && !withUser) {
-      return new GuestSessionFixture(browser(context));
+      return new GuestSessionFixture(browser(context), useStubs);
     }
     throw new ExtensionConfigurationException(
         "@Session expects GuestSession without @User or UserSession with @User, got "
